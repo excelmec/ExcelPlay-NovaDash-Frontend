@@ -12,6 +12,8 @@ const Game: React.FC = () => {
       let speedMultiplier = 1; // Speed multiplier for increasing difficulty
       let obstacles: { x: number; y: number }[] = [];
       let spaceship: p5.Image;
+      let points = 0;
+      let gameOver = false;
 
       p.preload = () => {
         spaceship = p.loadImage('/spaceship.png'); // Ensure a pixel-style spaceship image is available
@@ -23,6 +25,17 @@ const Game: React.FC = () => {
       };
 
       p.draw = () => {
+        if (gameOver) {
+          p.background(0);
+          p.fill(255);
+          p.textAlign(p.CENTER, p.CENTER);
+          p.textSize(32);
+          p.text('Game Over', p.width / 2, p.height / 2 - 20);
+          p.textSize(16);
+          p.text(`Points: ${points}`, p.width / 2, p.height / 2 + 20);
+          return;
+        }
+
         p.background(0);
 
         // Draw lanes
@@ -42,7 +55,7 @@ const Game: React.FC = () => {
         obstacles.forEach((obstacle) => {
           p.fill(255, 0, 0);
           p.rect(obstacle.x - 20, obstacle.y, 40, 40);
-          obstacle.y += baseSpeed * speedMultiplier; // Increase speed based on multiplier
+          obstacle.y += baseSpeed * speedMultiplier;
 
           // Collision detection
           if (
@@ -50,7 +63,7 @@ const Game: React.FC = () => {
             obstacle.y < p.height - 80 &&
             obstacle.x === lanes[spaceshipLaneIndex]
           ) {
-            console.log('Game Over');
+            gameOver = true;
             p.noLoop();
           }
         });
@@ -58,10 +71,16 @@ const Game: React.FC = () => {
         // Remove obstacles that are out of view
         obstacles = obstacles.filter((obstacle) => obstacle.y < p.height);
 
-        // Increase difficulty over time
+        // Increase difficulty and points over time
+        points++;
         if (p.frameCount % 600 === 0) { // Every 10 seconds (60 fps)
           speedMultiplier += 0.1; // Increase speed multiplier
         }
+
+        // Display points
+        p.fill(255);
+        p.textSize(16);
+        p.text(`Points: ${points}`, p.width - 80, 30);
       };
 
       // Handle lane change
@@ -87,10 +106,19 @@ const Game: React.FC = () => {
 
       p.touchEnded = (event: TouchEvent) => {
         const touchEndX = event.changedTouches[0].clientX;
-        if (touchEndX - touchStartX > 50) changeLane(-1); // Swipe right to left
-        else if (touchEndX - touchStartX < -50) changeLane(1); // Swipe left to right
+        const swipeDistance = touchEndX - touchStartX;
+      
+        if (swipeDistance > 50) {
+          // Swipe right
+          changeLane(1); // Move spaceship to the right
+        } else if (swipeDistance < -50) {
+          // Swipe left
+          changeLane(-1); // Move spaceship to the left
+        }
         return false;
       };
+      
+      
 
       // Cleanup the event listener on component unmount
       return () => {
