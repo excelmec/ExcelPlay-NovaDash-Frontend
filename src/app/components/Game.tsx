@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useRef, useEffect, useState } from 'react'
+import p5 from 'p5'
 
 // Game constants
 const CANVAS_WIDTH = 800
@@ -17,7 +18,6 @@ const SPEED_INCREMENT = 0.0001
 const SPAWN_INTERVAL = 2000
 const ENEMY_SPAWN_CHANCE = 0.3
 
-// Game objects
 interface GameObject {
   x: number
   y: number
@@ -39,199 +39,191 @@ interface Particle {
   color: string
 }
 
-// Main game component
 export default function SpaceRunner() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const sketchRef = useRef<HTMLDivElement>(null)
   const [score, setScore] = useState(0)
   const [gameOver, setGameOver] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
 
   useEffect(() => {
-    if (!gameStarted) return
+    if (!gameStarted || !sketchRef.current) return
 
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!canvas || !ctx) return
+    let sketch = new p5((p: p5) => {
+      let player: GameObject
+      let obstacles: GameObject[] = []
+      let enemies: GameObject[] = []
+      let bullets: Bullet[] = []
+      let particles: Particle[] = []
+      let stars: { x: number; y: number; size: number }[] = []
+      let gameSpeed = INITIAL_SPEED
+      let spawnTimer = 0
+      let spaceship: p5.Image
 
-    let animationFrameId: number
-    let lastTime = 0
-    let gameSpeed = INITIAL_SPEED
-    let spawnTimer = 0
+      p.preload = () => {
+        spaceship = p.loadImage('/spaceship.png')
+      }
 
-    const player: GameObject = {
-      x: 50,
-      y: CANVAS_HEIGHT / 2 - PLAYER_HEIGHT / 2,
-      width: PLAYER_WIDTH,
-      height: PLAYER_HEIGHT,
-      speed: 5,
-    }
-
-    let obstacles: GameObject[] = []
-    let enemies: GameObject[] = []
-    let bullets: Bullet[] = []
-    let particles: Particle[] = []
-    let stars: { x: number; y: number; size: number }[] = []
-
-    // Generate initial stars
-    for (let i = 0; i < 100; i++) {
-      stars.push({
-        x: Math.random() * CANVAS_WIDTH,
-        y: Math.random() * CANVAS_HEIGHT,
-        size: Math.random() * 2 + 1,
-      })
-    }
-
-    // Game loop
-    const gameLoop = (currentTime: number) => {
-      const deltaTime = currentTime - lastTime
-      lastTime = currentTime
-
-      // Clear canvas
-      ctx.fillStyle = '#000033'
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-
-      // Draw stars
-      ctx.fillStyle = '#FFFFFF'
-      stars.forEach((star) => {
-        ctx.fillRect(star.x, star.y, star.size, star.size)
-        star.x -= gameSpeed * 0.5
-        if (star.x < 0) {
-          star.x = CANVAS_WIDTH
-          star.y = Math.random() * CANVAS_HEIGHT
+      p.setup = () => {
+        p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+        player = {
+          x: 50,
+          y: CANVAS_HEIGHT / 2 - PLAYER_HEIGHT / 2,
+          width: PLAYER_WIDTH,
+          height: PLAYER_HEIGHT,
+          speed: 5,
         }
-      })
 
-      // Move and draw player
-      ctx.fillStyle = '#00FF00'
-      ctx.fillRect(player.x, player.y, player.width, player.height)
-
-      // Move and draw obstacles
-      obstacles = obstacles.filter((obstacle) => {
-        obstacle.x -= gameSpeed
-        ctx.fillStyle = '#FF0000'
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
-        return obstacle.x + obstacle.width > 0
-      })
-
-      // Move and draw enemies
-      enemies = enemies.filter((enemy) => {
-        enemy.x -= gameSpeed
-        ctx.fillStyle = '#FF00FF'
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height)
-        return enemy.x + enemy.width > 0
-      })
-
-      // Move and draw bullets
-      bullets = bullets.filter((bullet) => {
-        bullet.x += bullet.isPlayerBullet ? 10 : -10
-        ctx.fillStyle = bullet.isPlayerBullet ? '#00FFFF' : '#FFFF00'
-        ctx.fillRect(bullet.x, bullet.y, BULLET_SIZE, BULLET_SIZE)
-        return bullet.x > 0 && bullet.x < CANVAS_WIDTH
-      })
-
-      // Draw particles
-      particles = particles.filter((particle) => {
-        particle.x += Math.cos(particle.speed) * 3
-        particle.y += Math.sin(particle.speed) * 3
-        particle.life--
-        ctx.fillStyle = particle.color
-        ctx.fillRect(particle.x, particle.y, particle.size, particle.size)
-        return particle.life > 0
-      })
-
-      // Spawn obstacles and enemies
-      spawnTimer += deltaTime
-      if (spawnTimer > SPAWN_INTERVAL) {
-        spawnTimer = 0
-        const y = Math.random() * (CANVAS_HEIGHT - OBSTACLE_HEIGHT)
-        if (Math.random() < ENEMY_SPAWN_CHANCE) {
-          enemies.push({
-            x: CANVAS_WIDTH,
-            y,
-            width: ENEMY_WIDTH,
-            height: ENEMY_HEIGHT,
-            speed: gameSpeed,
-          })
-        } else {
-          obstacles.push({
-            x: CANVAS_WIDTH,
-            y,
-            width: OBSTACLE_WIDTH,
-            height: OBSTACLE_HEIGHT,
-            speed: gameSpeed,
+        // Generate initial stars
+        for (let i = 0; i < 100; i++) {
+          stars.push({
+            x: p.random(CANVAS_WIDTH),
+            y: p.random(CANVAS_HEIGHT),
+            size: p.random(1, 3),
           })
         }
       }
 
-      // Enemy shooting
-      enemies.forEach((enemy) => {
-        if (Math.random() < 0.01) {
-          bullets.push({
-            x: enemy.x,
-            y: enemy.y + enemy.height / 2,
-            width: BULLET_SIZE,
-            height: BULLET_SIZE,
-            speed: gameSpeed,
-            isPlayerBullet: false,
-          })
-        }
-      })
+      p.draw = () => {
+        p.background(0, 0, 51)
 
-      // Collision detection
-      const checkCollision = (obj1: GameObject, obj2: GameObject) => {
-        return (
-          obj1.x < obj2.x + obj2.width &&
-          obj1.x + obj1.width > obj2.x &&
-          obj1.y < obj2.y + obj2.height &&
-          obj1.y + obj1.height > obj2.y
-        )
-      }
+        // Draw stars
+        p.fill(255)
+        stars.forEach((star) => {
+          p.rect(star.x, star.y, star.size, star.size)
+          star.x -= gameSpeed * 0.5
+          if (star.x < 0) {
+            star.x = CANVAS_WIDTH
+            star.y = p.random(CANVAS_HEIGHT)
+          }
+        })
 
-      // Check player collision with obstacles and enemies
-      if (
-        obstacles.some((obstacle) => checkCollision(player, obstacle)) ||
-        enemies.some((enemy) => checkCollision(player, enemy)) ||
-        bullets.some((bullet) => !bullet.isPlayerBullet && checkCollision(player, bullet))
-      ) {
-        createExplosion(player.x + player.width / 2, player.y + player.height / 2)
-        setGameOver(true)
-        return
-      }
+        // Draw player
+        p.image(spaceship, player.x, player.y, player.width, player.height)
 
-      // Check bullet collisions
-      bullets = bullets.filter((bullet) => {
-        if (bullet.isPlayerBullet) {
-          const hitEnemy = enemies.find((enemy) => checkCollision(bullet, enemy))
-          if (hitEnemy) {
-            createExplosion(hitEnemy.x + hitEnemy.width / 2, hitEnemy.y + hitEnemy.height / 2)
-            enemies = enemies.filter((e) => e !== hitEnemy)
-            setScore((prevScore) => prevScore + 100)
-            return false
+        // Move and draw obstacles
+        obstacles = obstacles.filter((obstacle) => {
+          obstacle.x -= gameSpeed
+          p.fill(255, 0, 0)
+          p.rect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
+          return obstacle.x + obstacle.width > 0
+        })
+
+        // Move and draw enemies
+        enemies = enemies.filter((enemy) => {
+          enemy.x -= gameSpeed
+          p.fill(255, 0, 255)
+          p.rect(enemy.x, enemy.y, enemy.width, enemy.height)
+          return enemy.x + enemy.width > 0
+        })
+
+        // Move and draw bullets
+        bullets = bullets.filter((bullet) => {
+          bullet.x += bullet.isPlayerBullet ? 10 : -10
+          p.fill(bullet.isPlayerBullet ? 0 : 255, 255, bullet.isPlayerBullet ? 255 : 0)
+          p.rect(bullet.x, bullet.y, BULLET_SIZE, BULLET_SIZE)
+          return bullet.x > 0 && bullet.x < CANVAS_WIDTH
+        })
+
+        // Draw particles
+        particles = particles.filter((particle) => {
+          particle.x += Math.cos(particle.speed) * 3
+          particle.y += Math.sin(particle.speed) * 3
+          particle.life--
+          p.fill(particle.color)
+          p.rect(particle.x, particle.y, particle.size, particle.size)
+          return particle.life > 0
+        })
+
+        // Spawn obstacles and enemies
+        spawnTimer += p.deltaTime
+        if (spawnTimer > SPAWN_INTERVAL) {
+          spawnTimer = 0
+          const y = p.random(CANVAS_HEIGHT - OBSTACLE_HEIGHT)
+          if (p.random() < ENEMY_SPAWN_CHANCE) {
+            enemies.push({
+              x: CANVAS_WIDTH,
+              y,
+              width: ENEMY_WIDTH,
+              height: ENEMY_HEIGHT,
+              speed: gameSpeed,
+            })
+          } else {
+            obstacles.push({
+              x: CANVAS_WIDTH,
+              y,
+              width: OBSTACLE_WIDTH,
+              height: OBSTACLE_HEIGHT,
+              speed: gameSpeed,
+            })
           }
         }
-        return true
-      })
 
-      // Update score and game speed
-      setScore((prevScore) => prevScore + 1)
-      gameSpeed += SPEED_INCREMENT
+        // Enemy shooting
+        enemies.forEach((enemy) => {
+          if (p.random() < 0.01) {
+            bullets.push({
+              x: enemy.x,
+              y: enemy.y + enemy.height / 2,
+              width: BULLET_SIZE,
+              height: BULLET_SIZE,
+              speed: gameSpeed,
+              isPlayerBullet: false,
+            })
+          }
+        })
 
-      animationFrameId = requestAnimationFrame(gameLoop)
-    }
+        // Collision detection
+        const checkCollision = (obj1: GameObject, obj2: GameObject) => {
+          return (
+            obj1.x < obj2.x + obj2.width &&
+            obj1.x + obj1.width > obj2.x &&
+            obj1.y < obj2.y + obj2.height &&
+            obj1.y + obj1.height > obj2.y
+          )
+        }
 
-    // Start game loop
-    animationFrameId = requestAnimationFrame(gameLoop)
+        // Check player collision with obstacles and enemies
+        if (
+          obstacles.some((obstacle) => checkCollision(player, obstacle)) ||
+          enemies.some((enemy) => checkCollision(player, enemy)) ||
+          bullets.some((bullet) => !bullet.isPlayerBullet && checkCollision(player, bullet))
+        ) {
+          createExplosion(player.x + player.width / 2, player.y + player.height / 2)
+          setGameOver(true)
+          p.noLoop()
+          return
+        }
 
-    // Keyboard controls
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowUp':
+        // Check bullet collisions
+        bullets = bullets.filter((bullet) => {
+          if (bullet.isPlayerBullet) {
+            const hitEnemy = enemies.find((enemy) => checkCollision(bullet, enemy))
+            if (hitEnemy) {
+              createExplosion(hitEnemy.x + hitEnemy.width / 2, hitEnemy.y + hitEnemy.height / 2)
+              enemies = enemies.filter((e) => e !== hitEnemy)
+              setScore((prevScore) => prevScore + 100)
+              return false
+            }
+          }
+          return true
+        })
+
+        // Update score and game speed
+        setScore((prevScore) => prevScore + 1)
+        gameSpeed += SPEED_INCREMENT
+
+        // Display score
+        p.fill(255)
+        p.textSize(16)
+        p.text(`Score: ${score}`, CANVAS_WIDTH - 100, 30)
+      }
+
+      p.keyPressed = () => {
+        if (p.keyCode === p.UP_ARROW) {
           player.y = Math.max(0, player.y - player.speed)
-          break
-        case 'ArrowDown':
+        } else if (p.keyCode === p.DOWN_ARROW) {
           player.y = Math.min(CANVAS_HEIGHT - player.height, player.y + player.speed)
-          break
-        case ' ':
+        } else if (p.keyCode === 32) { // Spacebar
           bullets.push({
             x: player.x + player.width,
             y: player.y + player.height / 2,
@@ -240,56 +232,47 @@ export default function SpaceRunner() {
             speed: gameSpeed,
             isPlayerBullet: true,
           })
-          break
+        }
       }
-    }
 
-    window.addEventListener('keydown', handleKeyDown)
-
-    // Touch controls
-    let touchStartY = 0
-    canvas.addEventListener('touchstart', (e) => {
-      touchStartY = e.touches[0].clientY
-    })
-
-    canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault()
-      const touchEndY = e.touches[0].clientY
-      const deltaY = touchEndY - touchStartY
-      player.y = Math.max(0, Math.min(CANVAS_HEIGHT - player.height, player.y + deltaY))
-      touchStartY = touchEndY
-    })
-
-    canvas.addEventListener('touchend', () => {
-      bullets.push({
-        x: player.x + player.width,
-        y: player.y + player.height / 2,
-        width: BULLET_SIZE,
-        height: BULLET_SIZE,
-        speed: gameSpeed,
-        isPlayerBullet: true,
-      })
-    })
-
-    // Create explosion effect
-    const createExplosion = (x: number, y: number) => {
-      for (let i = 0; i < 20; i++) {
-        particles.push({
-          x,
-          y,
-          size: Math.random() * 3 + 1,
-          speed: Math.random() * Math.PI * 2,
-          life: Math.random() * 20 + 10,
-          color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`,
+      p.touchStarted = () => {
+        bullets.push({
+          x: player.x + player.width,
+          y: player.y + player.height / 2,
+          width: BULLET_SIZE,
+          height: BULLET_SIZE,
+          speed: gameSpeed,
+          isPlayerBullet: true,
         })
+        return false
       }
-    }
+
+      p.touchMoved = () => {
+        const touch = p.touches[0]
+        if (touch) {
+          player.y = p.constrain(touch.y - player.height / 2, 0, CANVAS_HEIGHT - player.height)
+        }
+        return false
+      }
+
+      const createExplosion = (x: number, y: number) => {
+        for (let i = 0; i < 20; i++) {
+          particles.push({
+            x,
+            y,
+            size: p.random(1, 4),
+            speed: p.random(p.TWO_PI),
+            life: p.random(10, 30),
+            color: p.color(p.random(200, 255), p.random(100, 150), 0).toString(),
+          })
+        }
+      }
+    }, sketchRef.current)
 
     return () => {
-      cancelAnimationFrame(animationFrameId)
-      window.removeEventListener('keydown', handleKeyDown)
+      sketch.remove()
     }
-  }, [gameStarted])
+  }, [gameStarted, score])
 
   const handleStartGame = () => {
     setGameStarted(true)
@@ -312,13 +295,7 @@ export default function SpaceRunner() {
         </div>
       ) : (
         <div>
-          <p className="text-xl mb-2">Score: {score}</p>
-          <canvas
-            ref={canvasRef}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            className="border border-white"
-          />
+          <div ref={sketchRef} />
           <p className="mt-2 text-sm">
             Use arrow keys to move, spacebar to shoot. On mobile, swipe to move and tap to shoot.
           </p>
