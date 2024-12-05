@@ -8,18 +8,20 @@ const Game: React.FC = () => {
 
   const sketch = useCallback((p: p5) => {
     let spaceshipLaneIndex = 1 // Start in the center lane
-    const lanes = [50, 150, 250] // X positions for 3 lanes
+    const lanes = [50, 150, 250, 350] // X positions for 4 lanes
     let baseSpeed = 3 // Initial speed of obstacles
     let speedMultiplier = 1 // Speed multiplier for increasing difficulty
-    let obstacles: { x: number; y: number; type: 'asteroid' | 'powerup' }[] = []
-    let bullets: { x: number; y: number }[] = []
+    let obstacles: { x: number; y: number; type: string }[] = []
+    let bullets: { x: number; y: number; isEnemy: boolean }[] = []
+    let enemySpaceships: { x: number; y: number; lane: number }[] = []
+    let explosions: { x: number; y: number; frame: number }[] = []
     let spaceship: p5.Image
-    let asteroidImg: p5.Image
-    let powerupImg: p5.Image
+    let enemySpaceshipImg: p5.Image
+    let powerupSlowImg: p5.Image
+    let powerupShootImg: p5.Image
     let explosionImg: p5.Image
     let retroFont: p5.Font
     let points = 0
-    let lives = 3
     let gameOver = false
     let level = 1
     let shootCooldown = 0
@@ -28,8 +30,9 @@ const Game: React.FC = () => {
 
     p.preload = () => {
       spaceship = p.loadImage('/spaceship.png')
-      asteroidImg = p.loadImage('/asteroid.png')
-      powerupImg = p.loadImage('/powerup.png')
+      enemySpaceshipImg = p.loadImage('/enemy-spaceship.png')
+      powerupSlowImg = p.loadImage('/powerup.png')
+      powerupShootImg = p.loadImage('/powerup.png')
       explosionImg = p.loadImage('/explosion.png')
       retroFont = p.loadFont('/PressStart2P.ttf')
     }
@@ -50,7 +53,9 @@ const Game: React.FC = () => {
       drawLanes()
       drawSpaceship()
       handleObstacles()
+      handleEnemySpaceships()
       handleBullets()
+      handleExplosions()
       handlePowerup()
       updateAndDrawHUD()
 
@@ -81,15 +86,19 @@ const Game: React.FC = () => {
 
     const handleObstacles = () => {
       // Generate obstacles
-      if (p.frameCount % 60 === 0) {
+      if (p.frameCount % 120 === 0) {
         const laneIndex = p.floor(p.random(0, lanes.length))
-        const type = p.random() > 0.9 ? 'powerup' : 'asteroid'
-        obstacles.push({ x: lanes[laneIndex], y: 0, type })
+        if (p.random() > 0.7) {
+          enemySpaceships.push({ x: lanes[laneIndex], y: 0, lane: laneIndex })
+        } else {
+          const type = p.random() > 0.5 ? 'powerup-slow' : 'powerup-shoot'
+          obstacles.push({ x: lanes[laneIndex], y: 0, type })
+        }
       }
 
       // Move and draw obstacles
       obstacles.forEach((obstacle, index) => {
-        const img = obstacle.type === 'asteroid' ? asteroidImg : powerupImg
+        const img = obstacle.type === 'powerup-slow' ? powerupSlowImg : powerupShootImg
         p.image(img, obstacle.x, obstacle.y, 30, 30)
         obstacle.y += baseSpeed * speedMultiplier
 
@@ -99,15 +108,7 @@ const Game: React.FC = () => {
           obstacle.y < p.height - 30 &&
           obstacle.x === lanes[spaceshipLaneIndex]
         ) {
-          if (obstacle.type === 'asteroid') {
-            lives--
-            if (lives <= 0) {
-              gameOver = true
-              p.noLoop()
-            }
-          } else {
-            activatePowerup()
-          }
+          activatePowerup(obstacle.type)
           obstacles.splice(index, 1)
         }
       })
@@ -116,32 +117,90 @@ const Game: React.FC = () => {
       obstacles = obstacles.filter((obstacle) => obstacle.y < p.height)
     }
 
+    const handleEnemySpaceships = () => {
+      enemySpaceships.forEach((enemy, index) => {
+        p.image(enemySpaceshipImg, enemy.x, enemy.y, 40, 40)
+        enemy.y += baseSpeed * speedMultiplier * 0.5
+
+        // Enemy shooting
+        if (p.frameCount % 60 === 0 && p.random() > 0.7) {
+          bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true })
+        }
+
+        // Enemy changing lanes
+        if (p.frameCount % 180 === 0 && p.random() > 0.5) {
+          const newLane = p.floor(p.random(0, lanes.length))
+          enemy.lane = newLane
+          enemy.x = lanes[newLane]
+        }
+
+        // Collision detection with player
+        if (
+          enemy.y > p.height - 70 &&
+          enemy.y < p.height - 30 &&
+          enemy.x === lanes[spaceshipLaneIndex]
+        ) {
+          createExplosion(enemy.x, enemy.y)
+          enemySpaceships.splice(index, 1)
+          gameOver = true
+          p.noLoop()
+        }
+      })
+
+      // Remove enemy spaceships that are out of view
+      enemySpaceships = enemySpaceships.filter((enemy) => enemy.y < p.height)
+    }
+
     const handleBullets = () => {
       bullets.forEach((bullet, index) => {
-        p.fill(0, 255, 0)
+        p.fill(bullet.isEnemy ? 255 : 0, bullet.isEnemy ? 0 : 255, 0)
         p.rect(bullet.x - 2, bullet.y, 4, 10)
-        bullet.y -= 10
+        bullet.y += bullet.isEnemy ? 5 : -10
 
-        // Check for collision with asteroids
-        obstacles.forEach((obstacle, obstacleIndex) => {
+        if (!bullet.isEnemy) {
+          // Check for collision with enemy spaceships
+          enemySpaceships.forEach((enemy, enemyIndex) => {
+            if (p.dist(bullet.x, bullet.y, enemy.x, enemy.y) < 20) {
+              createExplosion(enemy.x, enemy.y)
+              enemySpaceships.splice(enemyIndex, 1)
+              bullets.splice(index, 1)
+              points += 20
+            }
+          })
+        } else {
+          // Check for collision with player
           if (
-            obstacle.type === 'asteroid' &&
-            p.dist(bullet.x, bullet.y, obstacle.x, obstacle.y) < 20
+            bullet.y > p.height - 70 &&
+            bullet.y < p.height - 30 &&
+            bullet.x === lanes[spaceshipLaneIndex]
           ) {
-            // Show explosion
-            p.image(explosionImg, obstacle.x, obstacle.y, 40, 40)
-            obstacles.splice(obstacleIndex, 1)
+            createExplosion(bullet.x, p.height - 50)
             bullets.splice(index, 1)
-            points += 10
+            gameOver = true
+            p.noLoop()
           }
-        })
+        }
       })
 
       // Remove bullets that are out of view
-      bullets = bullets.filter((bullet) => bullet.y > 0)
+      bullets = bullets.filter((bullet) => bullet.y > 0 && bullet.y < p.height)
 
       // Decrease shoot cooldown
       if (shootCooldown > 0) shootCooldown--
+    }
+
+    const createExplosion = (x: number, y: number) => {
+      explosions.push({ x, y, frame: 0 })
+    }
+
+    const handleExplosions = () => {
+      explosions.forEach((explosion, index) => {
+        p.image(explosionImg, explosion.x, explosion.y, 60, 60)
+        explosion.frame++
+        if (explosion.frame > 30) {
+          explosions.splice(index, 1)
+        }
+      })
     }
 
     const handlePowerup = () => {
@@ -154,18 +213,21 @@ const Game: React.FC = () => {
       }
     }
 
-    const activatePowerup = () => {
+    const activatePowerup = (type: string) => {
       powerupActive = true
       powerupTimer = 300 // 5 seconds at 60 fps
-      baseSpeed = 1 // Slow down obstacles
+      if (type === 'powerup-slow') {
+        baseSpeed = 1 // Slow down obstacles
+      } else if (type === 'powerup-shoot') {
+        shootCooldown = 0 // Allow rapid firing
+      }
     }
 
     const updateAndDrawHUD = () => {
       p.fill(255)
       p.textSize(16)
       p.text(`SCORE: ${points}`, 10, 20)
-      p.text(`LIVES: ${lives}`, 10, 40)
-      p.text(`LEVEL: ${level}`, 10, 60)
+      p.text(`LEVEL: ${level}`, 10, 40)
 
       if (powerupActive) {
         p.fill(0, 255, 0)
@@ -191,7 +253,7 @@ const Game: React.FC = () => {
 
     const shoot = () => {
       if (shootCooldown === 0) {
-        bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70 })
+        bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70, isEnemy: false })
         shootCooldown = 15 // Set cooldown to prevent rapid firing
       }
     }
@@ -215,8 +277,9 @@ const Game: React.FC = () => {
       speedMultiplier = 1
       obstacles = []
       bullets = []
+      enemySpaceships = []
+      explosions = []
       points = 0
-      lives = 3
       gameOver = false
       level = 1
       shootCooldown = 0
