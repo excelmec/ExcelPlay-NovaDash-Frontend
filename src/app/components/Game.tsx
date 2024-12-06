@@ -8,7 +8,7 @@ const Game: React.FC = () => {
 
   const sketch = useCallback((p: p5) => {
     let spaceshipLaneIndex = 1 // Start in the center lane
-    const lanes = [50, 150, 250, 350] // X positions for 4 lanes
+    const lanes = [100, 200, 300] // X positions for 3 lanes
     let baseSpeed = 3 // Initial speed of obstacles
     let speedMultiplier = 1 // Speed multiplier for increasing difficulty
     let obstacles: { x: number; y: number; type: string }[] = []
@@ -18,8 +18,8 @@ const Game: React.FC = () => {
     let spaceship: p5.Image
     let enemySpaceshipImg: p5.Image
     let powerupSlowImg: p5.Image
-    let powerupShootImg: p5.Image
     let explosionImg: p5.Image
+    let asteroidImg: p5.Image
     let retroFont: p5.Font
     let points = 0
     let gameOver = false
@@ -27,13 +27,16 @@ const Game: React.FC = () => {
     let shootCooldown = 0
     let powerupActive = false
     let powerupTimer = 0
+    let lastPowerupTime = 0
+    let stars: { x: number; y: number; speed: number }[] = []
+    let lastSpeedIncreaseScore = 0
 
     p.preload = () => {
       spaceship = p.loadImage('/spaceship.png')
       enemySpaceshipImg = p.loadImage('/enemy-spaceship.png')
       powerupSlowImg = p.loadImage('/powerup.png')
-      powerupShootImg = p.loadImage('/powerup.png')
       explosionImg = p.loadImage('/explosion.png')
+      asteroidImg = p.loadImage('/asteroid.png')
       retroFont = p.loadFont('/PressStart2P.ttf')
     }
 
@@ -41,6 +44,46 @@ const Game: React.FC = () => {
       p.createCanvas(400, 600)
       p.imageMode(p.CENTER)
       p.textFont(retroFont)
+      createStars()
+    }
+
+    const createStars = () => {
+      for (let i = 0; i < 100; i++) {
+        stars.push({
+          x: p.random(p.width),
+          y: p.random(p.height),
+          speed: p.random(1, 3)
+        })
+      }
+    }
+
+    const updateStars = () => {
+      stars.forEach(star => {
+        star.y += star.speed * speedMultiplier
+        if (star.y > p.height) {
+          star.y = 0
+          star.x = p.random(p.width)
+        }
+      })
+    }
+
+    const drawStars = () => {
+      p.fill(255)
+      p.noStroke()
+      stars.forEach(star => {
+        p.ellipse(star.x, star.y, 2, 2)
+      })
+    }
+
+    const checkAndUpdateGameSpeed = () => {
+      const scoreThresholds = [500, 1000, 2000, 2500, 3000, 4000]
+      const currentThreshold = scoreThresholds.find(threshold => points >= threshold && threshold > lastSpeedIncreaseScore)
+      
+      if (currentThreshold) {
+        speedMultiplier *= 2
+        lastSpeedIncreaseScore = currentThreshold
+        console.log(`Speed increased at score ${currentThreshold}. New multiplier: ${speedMultiplier}`)
+      }
     }
 
     p.draw = () => {
@@ -50,6 +93,8 @@ const Game: React.FC = () => {
       }
 
       drawBackground()
+      updateStars()
+      drawStars()
       drawLanes()
       drawSpaceship()
       handleObstacles()
@@ -64,19 +109,21 @@ const Game: React.FC = () => {
         level++
         speedMultiplier += 0.1
       }
+
+      // Gradually increase score over time
+      points += 0.01 * speedMultiplier
+
+      // Check and update game speed based on score
+      checkAndUpdateGameSpeed()
     }
 
     const drawBackground = () => {
       p.background(0)
-      // Draw stars
-      for (let i = 0; i < 50; i++) {
-        p.fill(255)
-        p.ellipse(p.random(p.width), p.random(p.height), 2, 2)
-      }
     }
 
     const drawLanes = () => {
       p.stroke(100)
+      p.strokeWeight(2)
       lanes.forEach((x) => p.line(x, 0, x, p.height))
     }
 
@@ -84,22 +131,46 @@ const Game: React.FC = () => {
       p.image(spaceship, lanes[spaceshipLaneIndex], p.height - 50, 40, 40)
     }
 
+    const checkCollision = (obj1: { x: number; y: number }, obj2: { x: number; y: number }, distance: number): boolean => {
+      return p.dist(obj1.x, obj1.y, obj2.x, obj2.y) < distance;
+    }
+
     const handleObstacles = () => {
       // Generate obstacles
       if (p.frameCount % 120 === 0) {
         const laneIndex = p.floor(p.random(0, lanes.length))
-        if (p.random() > 0.7) {
-          enemySpaceships.push({ x: lanes[laneIndex], y: 0, lane: laneIndex })
-        } else {
-          const type = p.random() > 0.5 ? 'powerup-slow' : 'powerup-shoot'
-          obstacles.push({ x: lanes[laneIndex], y: 0, type })
+        enemySpaceships.push({ x: lanes[laneIndex], y: 0, lane: laneIndex })
+      }
+
+      // Generate asteroids
+      if (p.frameCount % 90 === 0) {
+        const laneIndex = p.floor(p.random(0, lanes.length));
+        const newAsteroid = { x: lanes[laneIndex], y: 0, type: 'asteroid' as const };
+
+        // Check if the new asteroid overlaps with existing obstacles or enemy spaceships
+        const isOverlapping = [...obstacles, ...enemySpaceships].some(obj =>
+          checkCollision(newAsteroid, obj, 40)
+        );
+
+        if (!isOverlapping) {
+          obstacles.push(newAsteroid);
         }
+      }
+
+      // Generate powerups every 2 minutes
+      if (p.frameCount - lastPowerupTime >= 7200) { // 7200 frames = 2 minutes at 60 fps
+        const laneIndex = p.floor(p.random(0, lanes.length))
+        obstacles.push({ x: lanes[laneIndex], y: 0, type: 'powerup-slow' })
+        lastPowerupTime = p.frameCount
       }
 
       // Move and draw obstacles
       obstacles.forEach((obstacle, index) => {
-        const img = obstacle.type === 'powerup-slow' ? powerupSlowImg : powerupShootImg
-        p.image(img, obstacle.x, obstacle.y, 30, 30)
+        if (obstacle.type === 'powerup-slow') {
+          p.image(powerupSlowImg, obstacle.x, obstacle.y, 30, 30)
+        } else if (obstacle.type === 'asteroid') {
+          p.image(asteroidImg, obstacle.x, obstacle.y, 30, 30)
+        }
         obstacle.y += baseSpeed * speedMultiplier
 
         // Collision detection
@@ -108,8 +179,13 @@ const Game: React.FC = () => {
           obstacle.y < p.height - 30 &&
           obstacle.x === lanes[spaceshipLaneIndex]
         ) {
-          activatePowerup(obstacle.type)
-          obstacles.splice(index, 1)
+          if (obstacle.type === 'powerup-slow') {
+            activatePowerup(obstacle.type)
+            obstacles.splice(index, 1)
+          } else if (obstacle.type === 'asteroid') {
+            gameOver = true
+            p.noLoop()
+          }
         }
       })
 
@@ -118,6 +194,21 @@ const Game: React.FC = () => {
     }
 
     const handleEnemySpaceships = () => {
+      // Generate obstacles
+      if (p.frameCount % 120 === 0) {
+        const laneIndex = p.floor(p.random(0, lanes.length));
+        const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex };
+
+        // Check if the new enemy overlaps with existing obstacles or enemy spaceships
+        const isOverlapping = [...obstacles, ...enemySpaceships].some(obj =>
+          checkCollision(newEnemy, obj, 40)
+        );
+
+        if (!isOverlapping) {
+          enemySpaceships.push(newEnemy);
+        }
+      }
+
       enemySpaceships.forEach((enemy, index) => {
         p.image(enemySpaceshipImg, enemy.x, enemy.y, 40, 40)
         enemy.y += baseSpeed * speedMultiplier * 0.5
@@ -125,13 +216,6 @@ const Game: React.FC = () => {
         // Enemy shooting
         if (p.frameCount % 60 === 0 && p.random() > 0.7) {
           bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true })
-        }
-
-        // Enemy changing lanes
-        if (p.frameCount % 180 === 0 && p.random() > 0.5) {
-          const newLane = p.floor(p.random(0, lanes.length))
-          enemy.lane = newLane
-          enemy.x = lanes[newLane]
         }
 
         // Collision detection with player
@@ -165,6 +249,13 @@ const Game: React.FC = () => {
               enemySpaceships.splice(enemyIndex, 1)
               bullets.splice(index, 1)
               points += 20
+            }
+          })
+
+          // Check for collision with asteroids
+          obstacles.forEach((obstacle) => {
+            if (obstacle.type === 'asteroid' && p.dist(bullet.x, bullet.y, obstacle.x, obstacle.y) < 15) {
+              bullets.splice(index, 1)
             }
           })
         } else {
@@ -218,31 +309,30 @@ const Game: React.FC = () => {
       powerupTimer = 300 // 5 seconds at 60 fps
       if (type === 'powerup-slow') {
         baseSpeed = 1 // Slow down obstacles
-      } else if (type === 'powerup-shoot') {
-        shootCooldown = 0 // Allow rapid firing
       }
     }
 
     const updateAndDrawHUD = () => {
       p.fill(255)
       p.textSize(16)
-      p.text(`SCORE: ${points}`, 10, 20)
+      p.text(`SCORE: ${Math.floor(points)}`, 10, 20)
       p.text(`LEVEL: ${level}`, 10, 40)
 
       if (powerupActive) {
         p.fill(0, 255, 0)
-        p.text('POWER-UP ACTIVE!', p.width / 2 - 60, 20)
+        p.text('SLOW-DOWN ACTIVE!', p.width / 2 - 80, 20)
       }
     }
 
     const drawGameOver = () => {
       p.background(0)
+      drawStars()
       p.fill(255)
       p.textAlign(p.CENTER, p.CENTER)
       p.textSize(32)
       p.text('GAME OVER', p.width / 2, p.height / 2 - 40)
       p.textSize(16)
-      p.text(`FINAL SCORE: ${points}`, p.width / 2, p.height / 2)
+      p.text(`FINAL SCORE: ${Math.floor(points)}`, p.width / 2, p.height / 2)
       p.text(`LEVEL REACHED: ${level}`, p.width / 2, p.height / 2 + 30)
       p.text('PRESS SPACE TO RESTART', p.width / 2, p.height / 2 + 60)
     }
@@ -255,6 +345,7 @@ const Game: React.FC = () => {
       if (shootCooldown === 0) {
         bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70, isEnemy: false })
         shootCooldown = 15 // Set cooldown to prevent rapid firing
+        points += 5 // Add extra points for shooting
       }
     }
 
@@ -285,6 +376,8 @@ const Game: React.FC = () => {
       shootCooldown = 0
       powerupActive = false
       powerupTimer = 0
+      lastPowerupTime = 0
+      lastSpeedIncreaseScore = 0
       p.loop()
     }
 
