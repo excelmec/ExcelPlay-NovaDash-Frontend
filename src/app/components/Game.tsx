@@ -30,6 +30,7 @@ const Game: React.FC = () => {
     let lastPowerupTime = 0
     let stars: { x: number; y: number; speed: number }[] = []
     let lastSpeedIncreaseScore = 0
+    let touchStartX = 0
 
     p.preload = () => {
       spaceship = p.loadImage('/spaceship.png')
@@ -339,7 +340,6 @@ const Game: React.FC = () => {
       if (shootCooldown === 0) {
         bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70, isEnemy: false })
         shootCooldown = 15 // Set cooldown to prevent rapid firing
-        points += 5 // Add extra points for shooting
       }
     }
 
@@ -375,22 +375,25 @@ const Game: React.FC = () => {
     }
 
     // Touch events for mobile swipe gestures
-    let touchStartX = 0
     p.touchStarted = (event: TouchEvent) => {
-      touchStartX = event.touches[0].clientX
+      if (event.touches && event.touches[0]) {
+        touchStartX = event.touches[0].clientX
+      }
       return false
     }
 
     p.touchEnded = (event: TouchEvent) => {
-      const touchEndX = event.changedTouches[0].clientX
-      const swipeDistance = touchEndX - touchStartX
+      if (event.changedTouches && event.changedTouches[0]) {
+        const touchEndX = event.changedTouches[0].clientX
+        const swipeDistance = touchEndX - touchStartX
 
-      if (swipeDistance > 50) {
-        changeLane(1) // Move spaceship to the right
-      } else if (swipeDistance < -50) {
-        changeLane(-1) // Move spaceship to the left
-      } else {
-        shoot() // Tap to shoot
+        if (swipeDistance > 50) {
+          changeLane(1) // Move spaceship to the right
+        } else if (swipeDistance < -50) {
+          changeLane(-1) // Move spaceship to the left
+        } else {
+          shoot() // Tap to shoot
+        }
       }
       return false
     }
