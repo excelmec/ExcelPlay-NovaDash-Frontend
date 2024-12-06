@@ -9,7 +9,7 @@ const Game: React.FC = () => {
   const sketch = useCallback((p: p5) => {
     let spaceshipLaneIndex = 1 // Start in the center lane
     const lanes = [100, 200, 300] // X positions for 3 lanes
-    let baseSpeed = 3 // Initial speed of obstacles
+    const baseSpeed = 2 // Initial speed of obstacles and enemies
     let speedMultiplier = 1 // Speed multiplier for increasing difficulty
     let obstacles: { x: number; y: number; type: string }[] = []
     let bullets: { x: number; y: number; isEnemy: boolean }[] = []
@@ -80,7 +80,7 @@ const Game: React.FC = () => {
       const currentThreshold = scoreThresholds.find(threshold => points >= threshold && threshold > lastSpeedIncreaseScore)
       
       if (currentThreshold) {
-        speedMultiplier *= 2
+        speedMultiplier *= 1.5
         lastSpeedIncreaseScore = currentThreshold
         console.log(`Speed increased at score ${currentThreshold}. New multiplier: ${speedMultiplier}`)
       }
@@ -136,12 +136,6 @@ const Game: React.FC = () => {
     }
 
     const handleObstacles = () => {
-      // Generate obstacles
-      if (p.frameCount % 120 === 0) {
-        const laneIndex = p.floor(p.random(0, lanes.length))
-        enemySpaceships.push({ x: lanes[laneIndex], y: 0, lane: laneIndex })
-      }
-
       // Generate asteroids
       if (p.frameCount % 90 === 0) {
         const laneIndex = p.floor(p.random(0, lanes.length));
@@ -149,7 +143,7 @@ const Game: React.FC = () => {
 
         // Check if the new asteroid overlaps with existing obstacles or enemy spaceships
         const isOverlapping = [...obstacles, ...enemySpaceships].some(obj =>
-          checkCollision(newAsteroid, obj, 40)
+          checkCollision(newAsteroid, obj, 80)
         );
 
         if (!isOverlapping) {
@@ -171,7 +165,7 @@ const Game: React.FC = () => {
         } else if (obstacle.type === 'asteroid') {
           p.image(asteroidImg, obstacle.x, obstacle.y, 30, 30)
         }
-        obstacle.y += baseSpeed * speedMultiplier
+        obstacle.y += baseSpeed * speedMultiplier * 0.5
 
         // Collision detection
         if (
@@ -194,14 +188,14 @@ const Game: React.FC = () => {
     }
 
     const handleEnemySpaceships = () => {
-      // Generate obstacles
+      // Generate enemy spaceships
       if (p.frameCount % 120 === 0) {
         const laneIndex = p.floor(p.random(0, lanes.length));
         const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex };
 
         // Check if the new enemy overlaps with existing obstacles or enemy spaceships
         const isOverlapping = [...obstacles, ...enemySpaceships].some(obj =>
-          checkCollision(newEnemy, obj, 40)
+          checkCollision(newEnemy, obj, 80)
         );
 
         if (!isOverlapping) {
@@ -299,7 +293,7 @@ const Game: React.FC = () => {
         powerupTimer--
         if (powerupTimer <= 0) {
           powerupActive = false
-          baseSpeed = 3
+          speedMultiplier = 1
         }
       }
     }
@@ -308,7 +302,7 @@ const Game: React.FC = () => {
       powerupActive = true
       powerupTimer = 300 // 5 seconds at 60 fps
       if (type === 'powerup-slow') {
-        baseSpeed = 1 // Slow down obstacles
+        speedMultiplier = 0.5 // Slow down obstacles and enemies
       }
     }
 
@@ -364,7 +358,6 @@ const Game: React.FC = () => {
 
     const resetGame = () => {
       spaceshipLaneIndex = 1
-      baseSpeed = 3
       speedMultiplier = 1
       obstacles = []
       bullets = []
