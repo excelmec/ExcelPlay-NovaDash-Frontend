@@ -243,7 +243,7 @@ const Game: React.FC = () => {
               createExplosion(enemy.x, enemy.y)
               enemySpaceships.splice(enemyIndex, 1)
               bullets.splice(index, 1)
-              points += 20
+              points += 20 // Increase score only when destroying an enemy spaceship
             }
           })
 
@@ -340,6 +340,7 @@ const Game: React.FC = () => {
       if (shootCooldown === 0) {
         bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70, isEnemy: false })
         shootCooldown = 15 // Set cooldown to prevent rapid firing
+        // Remove this line: points += 5 // Add extra points for shooting
       }
     }
 
@@ -417,7 +418,14 @@ const Game: React.FC = () => {
     }
   }, [sketch])
 
-  return <div ref={gameRef} className="w-full h-full"></div>
+  return (
+    <div
+      ref={gameRef}
+      className="w-full h-screen flex items-center justify-center"
+    >
+    </div>
+  );
+  
 }
 
 export default Game
