@@ -123,7 +123,7 @@ const Game: React.FC = () => {
     }
 
     const drawLanes = () => {
-      p.stroke(100)
+
       p.strokeWeight(2)
       lanes.forEach((x) => p.line(x, 0, x, p.height))
     }
@@ -340,7 +340,6 @@ const Game: React.FC = () => {
       if (shootCooldown === 0) {
         bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70, isEnemy: false })
         shootCooldown = 15 // Set cooldown to prevent rapid firing
-        // Remove this line: points += 5 // Add extra points for shooting
       }
     }
 
@@ -425,7 +424,6 @@ const Game: React.FC = () => {
     >
     </div>
   );
-  
 }
 
 export default Game
