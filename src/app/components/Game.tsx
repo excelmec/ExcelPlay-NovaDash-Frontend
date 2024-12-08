@@ -96,7 +96,6 @@ const Game: React.FC = () => {
       drawBackground()
       updateStars()
       drawStars()
-      drawLanes()
       drawSpaceship()
       handleObstacles()
       handleEnemySpaceships()
@@ -122,11 +121,7 @@ const Game: React.FC = () => {
       p.background(0)
     }
 
-    const drawLanes = () => {
 
-      p.strokeWeight(2)
-      lanes.forEach((x) => p.line(x, 0, x, p.height))
-    }
 
     const drawSpaceship = () => {
       p.image(spaceship, lanes[spaceshipLaneIndex], p.height - 50, 40, 40)
@@ -190,17 +185,23 @@ const Game: React.FC = () => {
 
     const handleEnemySpaceships = () => {
       // Generate enemy spaceships
-      if (p.frameCount % 120 === 0) {
-        const laneIndex = p.floor(p.random(0, lanes.length));
-        const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex };
-
-        // Check if the new enemy overlaps with existing obstacles or enemy spaceships
-        const isOverlapping = [...obstacles, ...enemySpaceships].some(obj =>
-          checkCollision(newEnemy, obj, 80)
+      if (p.frameCount % 120 === 0 && enemySpaceships.length === 0) {
+        const availableLanes = [0, 1, 2].filter(lane => 
+          !enemySpaceships.some(enemy => enemy.lane === lane)
         );
+        
+        if (availableLanes.length > 0) {
+          const laneIndex = availableLanes[Math.floor(p.random(0, availableLanes.length))];
+          const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex };
 
-        if (!isOverlapping) {
-          enemySpaceships.push(newEnemy);
+          // Check if the new enemy overlaps with existing obstacles
+          const isOverlapping = obstacles.some(obj =>
+            checkCollision(newEnemy, obj, 80)
+          );
+
+          if (!isOverlapping) {
+            enemySpaceships.push(newEnemy);
+          }
         }
       }
 
