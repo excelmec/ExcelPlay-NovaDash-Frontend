@@ -77,7 +77,7 @@ const Game: React.FC = () => {
     }
 
     const checkAndUpdateGameSpeed = () => {
-      const scoreThresholds = [200, 500, 1000, 2000, 2500, 3000, 4000]
+      const scoreThresholds = [100 ,200, 500, 1000, 2000, 2500, 3000, 4000]
       const currentThreshold = scoreThresholds.find(threshold => points >= threshold && threshold > lastSpeedIncreaseScore)
       
       if (currentThreshold) {
