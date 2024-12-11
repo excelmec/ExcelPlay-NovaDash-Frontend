@@ -14,7 +14,7 @@ const Game: React.FC = () => {
     let obstacles: { x: number; y: number; type: string }[] = []
     let bullets: { x: number; y: number; isEnemy: boolean }[] = []
     let enemySpaceships: { x: number; y: number; lane: number }[] = []
-    let explosions: { x: number; y: number; frame: number }[] = []
+    let explosions: { x: number; y: number; frame: number; size: number }[] = []
     let spaceship: p5.Image
     let enemySpaceshipImg: p5.Image
     let powerupSlowImg: p5.Image
@@ -173,10 +173,13 @@ const Game: React.FC = () => {
             activatePowerup(obstacle.type)
             obstacles.splice(index, 1)
           } else if (obstacle.type === 'asteroid') {
+            createExplosion(obstacle.x, p.height - 50) // Create explosion at collision point
             gameOver = true
             p.noLoop()
           }
         }
+
+        
       })
 
       // Remove obstacles that are out of view
@@ -277,12 +280,20 @@ const Game: React.FC = () => {
     }
 
     const createExplosion = (x: number, y: number) => {
-      explosions.push({ x, y, frame: 0 })
+      explosions.push({ 
+        x: x,
+        y: y,
+        frame: 0,
+        size: 60
+      })
     }
 
     const handleExplosions = () => {
       explosions.forEach((explosion, index) => {
-        p.image(explosionImg, explosion.x, explosion.y, 60, 60)
+        const alpha = p.map(explosion.frame, 0, 30, 255, 0)
+        p.tint(255, alpha)
+        p.image(explosionImg, explosion.x, explosion.y, explosion.size, explosion.size)
+        p.noTint()
         explosion.frame++
         if (explosion.frame > 30) {
           explosions.splice(index, 1)
@@ -428,3 +439,4 @@ const Game: React.FC = () => {
 }
 
 export default Game
+
