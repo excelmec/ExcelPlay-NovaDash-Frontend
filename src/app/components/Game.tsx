@@ -213,7 +213,7 @@ const Game: React.FC = () => {
         enemy.y += baseSpeed * speedMultiplier * 0.5
 
         // Enemy shooting
-        if (p.frameCount % 60 === 0 && p.random() > 0.7) {
+        if (p.frameCount % 120 === 0) { // Shoot every 2 seconds (assuming 60 fps)
           bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true })
         }
 
