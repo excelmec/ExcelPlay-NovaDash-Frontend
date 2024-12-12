@@ -1,24 +1,21 @@
 'use client'
 
-import React, { useRef, useEffect, useState, useCallback } from 'react'
+import React, { useRef, useEffect, useCallback } from 'react'
 import p5 from 'p5'
 
-const DodgeBlast: React.FC = () => {
+const Game: React.FC = () => {
   const gameRef = useRef<HTMLDivElement>(null)
-  const [gameState, setGameState] = useState<'menu' | 'playing'>('menu')
-  const [selectedShip, setSelectedShip] = useState(0)
 
   const sketch = useCallback((p: p5) => {
-    // Game variables
-    let spaceshipLaneIndex = 1
-    const lanes = [100, 200, 300]
-    const baseSpeed = 2
-    let speedMultiplier = 1
+    let spaceshipLaneIndex = 1 // Start in the center lane
+    const lanes = [100, 200, 300] // X positions for 3 lanes
+    const baseSpeed = 2 // Initial speed of obstacles and enemies
+    let speedMultiplier = 1 // Speed multiplier for increasing difficulty
     let obstacles: { x: number; y: number; type: string }[] = []
     let bullets: { x: number; y: number; isEnemy: boolean }[] = []
     let enemySpaceships: { x: number; y: number; lane: number }[] = []
     let explosions: { x: number; y: number; frame: number; size: number }[] = []
-    let ships: p5.Image[] = []
+    let spaceship: p5.Image
     let enemySpaceshipImg: p5.Image
     let powerupSlowImg: p5.Image
     let explosionImg: p5.Image
@@ -36,9 +33,7 @@ const DodgeBlast: React.FC = () => {
     let touchStartX = 0
 
     p.preload = () => {
-      ships[0] = p.loadImage('/ship1.gif')
-      ships[1] = p.loadImage('/ship2.gif')
-      ships[2] = p.loadImage('/ship3.gif')
+      spaceship = p.loadImage('/spaceship.png')
       enemySpaceshipImg = p.loadImage('/enemy-spaceship.png')
       powerupSlowImg = p.loadImage('/powerup.png')
       explosionImg = p.loadImage('/explosion.png')
@@ -65,7 +60,7 @@ const DodgeBlast: React.FC = () => {
 
     const updateStars = () => {
       stars.forEach(star => {
-        star.y += star.speed * (gameState === 'playing' ? speedMultiplier : 1)
+        star.y += star.speed * speedMultiplier
         if (star.y > p.height) {
           star.y = 0
           star.x = p.random(p.width)
@@ -82,106 +77,25 @@ const DodgeBlast: React.FC = () => {
     }
 
     const checkAndUpdateGameSpeed = () => {
-      const scoreThresholds = [100, 200, 500, 1000, 2000, 2500, 3000, 4000]
+      const scoreThresholds = [100 ,200, 500, 1000, 2000, 2500, 3000, 4000]
       const currentThreshold = scoreThresholds.find(threshold => points >= threshold && threshold > lastSpeedIncreaseScore)
       
       if (currentThreshold) {
         speedMultiplier *= 1.5
         lastSpeedIncreaseScore = currentThreshold
+        console.log(`Speed increased at score ${currentThreshold}. New multiplier: ${speedMultiplier}`)
       }
     }
 
     p.draw = () => {
-      p.background(0)
+      if (gameOver) {
+        drawGameOver()
+        return
+      }
+
+      drawBackground()
       updateStars()
       drawStars()
-
-      if (gameState === 'menu') {
-        drawMenu()
-      } else if (gameState === 'playing') {
-        if (gameOver) {
-          drawGameOver()
-        } else {
-          updateGame()
-        }
-      }
-    }
-
-    const drawMenu = () => {
-      // Title with better 3D effect
-      p.textSize(30); // Reduced text size
-      p.textAlign(p.CENTER, p.CENTER);
-    
-      // Stronger pink shadow for "DODGE BLAST"
-      p.fill(255, 20, 147); // Hot pink shadow
-      for (let i = 1; i <= 4; i++) {
-        p.text('DODGE BLAST', p.width / 2 + i, 100 + i);
-      }
-      p.fill(255, 255, 0); // Brighter yellow text
-      p.text('DODGE BLAST', p.width / 2, 100);
-    
-      // Select Ship Text - increased spacing
-      p.textSize(20);
-      p.fill(255);
-      p.text('SELECT SHIP', p.width / 2, 220);
-    
-      // Ship Name - adjusted color and position
-      p.textSize(16);
-      p.fill(0, 191, 255); // Brighter cyan
-      p.text(`SHIP ${selectedShip + 101}`, p.width / 2, 270);
-    
-      // Draw current ship - adjusted position
-      if (ships[selectedShip]) {
-        p.image(ships[selectedShip], p.width / 2, 350, 80, 80);
-      }
-    
-      // Navigation arrows - made more visible and clickable
-      p.textSize(30);
-      if (selectedShip > 0) {
-        // Left arrow with hover effect
-        const leftArrowX = 80;
-        const isHoveringLeft =
-          p.mouseX > leftArrowX - 20 &&
-          p.mouseX < leftArrowX + 20 &&
-          p.mouseY > 340 &&
-          p.mouseY < 360;
-        p.fill(isHoveringLeft ? 200 : 255);
-        p.text('←', leftArrowX, 350);
-      }
-      if (selectedShip < ships.length - 1) {
-        // Right arrow with hover effect
-        const rightArrowX = p.width - 80;
-        const isHoveringRight =
-          p.mouseX > rightArrowX - 20 &&
-          p.mouseX < rightArrowX + 20 &&
-          p.mouseY > 340 &&
-          p.mouseY < 360;
-        p.fill(isHoveringRight ? 200 : 255);
-        p.text('→', rightArrowX, 350);
-      }
-    
-      // Start Game Button - improved styling
-      p.noStroke();
-      const buttonY = 500;
-      const buttonHeight = 60;
-      const isHoveringStart =
-        p.mouseX > p.width / 2 - 100 &&
-        p.mouseX < p.width / 2 + 100 &&
-        p.mouseY > buttonY &&
-        p.mouseY < buttonY + buttonHeight;
-    
-      // Button background with hover effect
-      p.fill(0, 0, 0, isHoveringStart ? 230 : 200);
-      p.rect(p.width / 2 - 100, buttonY, 200, buttonHeight, 15);
-    
-      // Button text
-      p.textSize(24);
-      p.fill(isHoveringStart ? 255 : 220);
-      p.text('START GAME', p.width / 2, buttonY + buttonHeight / 2);
-    };
-    
-
-    const updateGame = () => {
       drawSpaceship()
       handleObstacles()
       handleEnemySpaceships()
@@ -203,27 +117,33 @@ const DodgeBlast: React.FC = () => {
       checkAndUpdateGameSpeed()
     }
 
+    const drawBackground = () => {
+      p.background(0)
+    }
+
+
+
     const drawSpaceship = () => {
-      p.image(ships[selectedShip], lanes[spaceshipLaneIndex], p.height - 50, 60, 60)
+      p.image(spaceship, lanes[spaceshipLaneIndex], p.height - 50, 60, 60)
     }
 
     const checkCollision = (obj1: { x: number; y: number }, obj2: { x: number; y: number }, distance: number): boolean => {
-      return p.dist(obj1.x, obj1.y, obj2.x, obj2.y) < distance
+      return p.dist(obj1.x, obj1.y, obj2.x, obj2.y) < distance;
     }
 
     const handleObstacles = () => {
       // Generate asteroids
       if (p.frameCount % 90 === 0) {
-        const laneIndex = p.floor(p.random(0, lanes.length))
-        const newAsteroid = { x: lanes[laneIndex], y: 0, type: 'asteroid' as const }
+        const laneIndex = p.floor(p.random(0, lanes.length));
+        const newAsteroid = { x: lanes[laneIndex], y: 0, type: 'asteroid' as const };
 
         // Check if the new asteroid overlaps with existing obstacles or enemy spaceships
         const isOverlapping = [...obstacles, ...enemySpaceships].some(obj =>
           checkCollision(newAsteroid, obj, 80)
-        )
+        );
 
         if (!isOverlapping) {
-          obstacles.push(newAsteroid)
+          obstacles.push(newAsteroid);
         }
       }
 
@@ -255,8 +175,11 @@ const DodgeBlast: React.FC = () => {
           } else if (obstacle.type === 'asteroid') {
             createExplosion(obstacle.x, p.height - 50) // Create explosion at collision point
             gameOver = true
+            p.noLoop()
           }
         }
+
+        
       })
 
       // Remove obstacles that are out of view
@@ -268,19 +191,19 @@ const DodgeBlast: React.FC = () => {
       if (p.frameCount % 120 === 0 && enemySpaceships.length === 0) {
         const availableLanes = [0, 1, 2].filter(lane => 
           !enemySpaceships.some(enemy => enemy.lane === lane)
-        )
+        );
         
         if (availableLanes.length > 0) {
-          const laneIndex = availableLanes[Math.floor(p.random(0, availableLanes.length))]
-          const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex }
+          const laneIndex = availableLanes[Math.floor(p.random(0, availableLanes.length))];
+          const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex };
 
           // Check if the new enemy overlaps with existing obstacles
           const isOverlapping = obstacles.some(obj =>
             checkCollision(newEnemy, obj, 80)
-          )
+          );
 
           if (!isOverlapping) {
-            enemySpaceships.push(newEnemy)
+            enemySpaceships.push(newEnemy);
           }
         }
       }
@@ -303,6 +226,7 @@ const DodgeBlast: React.FC = () => {
           createExplosion(enemy.x, enemy.y)
           enemySpaceships.splice(index, 1)
           gameOver = true
+          p.noLoop()
         }
       })
 
@@ -343,6 +267,7 @@ const DodgeBlast: React.FC = () => {
             createExplosion(bullet.x, p.height - 50)
             bullets.splice(index, 1)
             gameOver = true
+            p.noLoop()
           }
         }
       })
@@ -417,7 +342,6 @@ const DodgeBlast: React.FC = () => {
       p.text(`FINAL SCORE: ${Math.floor(points)}`, p.width / 2, p.height / 2)
       p.text(`LEVEL REACHED: ${level}`, p.width / 2, p.height / 2 + 30)
       p.text('PRESS SPACE TO RESTART', p.width / 2, p.height / 2 + 60)
-      p.text('PRESS ENTER TO RETURN TO MENU', p.width / 2, p.height / 2 + 90)
     }
 
     const changeLane = (direction: number) => {
@@ -432,28 +356,14 @@ const DodgeBlast: React.FC = () => {
     }
 
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (gameState === 'playing') {
-        if (event.key === 'ArrowLeft') changeLane(-1)
-        if (event.key === 'ArrowRight') changeLane(1)
-        if (event.key === ' ') {
-          if (gameOver) {
-            resetGame()
-          } else {
-            shoot()
-          }
-        }
-        if (event.key === 'Enter' && gameOver) {
-          setGameState('menu')
-        }
-      } else if (gameState === 'menu') {
-        if (event.key === 'ArrowLeft' && selectedShip > 0) {
-          setSelectedShip(prev => prev - 1)
-        }
-        if (event.key === 'ArrowRight' && selectedShip < ships.length - 1) {
-          setSelectedShip(prev => prev + 1)
-        }
-        if (event.key === 'Enter') {
-          setGameState('playing')
+      if (event.key === 'ArrowLeft') changeLane(-1)
+      if (event.key === 'ArrowRight') changeLane(1)
+      if (event.key === ' ') {
+        if (gameOver) {
+          // Restart game
+          resetGame()
+        } else {
+          shoot()
         }
       }
     }
@@ -473,6 +383,7 @@ const DodgeBlast: React.FC = () => {
       powerupTimer = 0
       lastPowerupTime = 0
       lastSpeedIncreaseScore = 0
+      p.loop()
     }
 
     // Touch events for mobile swipe gestures
@@ -486,63 +397,14 @@ const DodgeBlast: React.FC = () => {
     p.touchEnded = (event: TouchEvent) => {
       if (event.changedTouches && event.changedTouches[0]) {
         const touchEndX = event.changedTouches[0].clientX
-        const touchEndY = event.changedTouches[0].clientY
         const swipeDistance = touchEndX - touchStartX
 
-        if (gameState === 'playing') {
-          if (gameOver) {
-            // Check if "RETURN TO MENU" button is tapped
-            if (touchEndY > p.height / 2 + 70 && touchEndY < p.height / 2 + 110) {
-              setGameState('menu')
-            } else {
-              resetGame()
-            }
-          } else {
-            if (swipeDistance > 50) {
-              changeLane(1) // Move spaceship to the right
-            } else if (swipeDistance < -50) {
-              changeLane(-1) // Move spaceship to the left
-            } else {
-              shoot() // Tap to shoot
-            }
-          }
-        } else if (gameState === 'menu') {
-          // Check if ship selection arrows are tapped - wider touch areas
-          if (touchEndY > 320 && touchEndY < 380) {
-            if (touchEndX < p.width/3 && selectedShip > 0) {
-              setSelectedShip(prev => prev - 1)
-            } else if (touchEndX > (p.width/3 * 2) && selectedShip < ships.length - 1) {
-              setSelectedShip(prev => prev + 1)
-            }
-          }
-          // Check if "START GAME" button is tapped - larger touch area
-          if (touchEndY > 480 && touchEndY < 560 && 
-              touchEndX > p.width/2 - 120 && touchEndX < p.width/2 + 120) {
-            setGameState('playing')
-          }
-        }
-      }
-      return false
-    }
-
-    p.mousePressed = () => {
-      if (gameState === 'menu') {
-        // Left arrow click - wider click area
-        if (p.mouseX < p.width/3 && p.mouseY > 320 && p.mouseY < 380 && selectedShip > 0) {
-          setSelectedShip(prev => prev - 1)
-          return false
-        }
-        // Right arrow click - wider click area
-        if (p.mouseX > (p.width/3 * 2) && p.mouseY > 320 && p.mouseY < 380 && 
-            selectedShip < ships.length - 1) {
-          setSelectedShip(prev => prev + 1)
-          return false
-        }
-        // Start game button click - larger click area
-        if (p.mouseY > 480 && p.mouseY < 560 && 
-            p.mouseX > p.width/2 - 120 && p.mouseX < p.width/2 + 120) {
-          setGameState('playing')
-          return false
+        if (swipeDistance > 50) {
+          changeLane(1) // Move spaceship to the right
+        } else if (swipeDistance < -50) {
+          changeLane(-1) // Move spaceship to the left
+        } else {
+          shoot() // Tap to shoot
         }
       }
       return false
@@ -555,7 +417,7 @@ const DodgeBlast: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyPress)
     }
-  }, [selectedShip, gameState])
+  }, [])
 
   useEffect(() => {
     // Attach p5 instance to the div
@@ -570,10 +432,10 @@ const DodgeBlast: React.FC = () => {
   return (
     <div
       ref={gameRef}
-      className="w-full h-screen flex items-center justify-center bg-black"
-    />
-  )
+      className="w-full h-screen flex items-center justify-center"
+    >
+    </div>
+  );
 }
 
-export default DodgeBlast
-
+export default Game
