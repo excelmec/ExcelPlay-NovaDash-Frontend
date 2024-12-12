@@ -33,7 +33,7 @@ const Game: React.FC = () => {
     let touchStartX = 0
 
     p.preload = () => {
-      spaceship = p.loadImage('/spaceship.png')
+      spaceship = p.loadImage('/spaceship.gif')
       enemySpaceshipImg = p.loadImage('/enemy-spaceship.png')
       powerupSlowImg = p.loadImage('/powerup.png')
       explosionImg = p.loadImage('/explosion.png')
@@ -124,7 +124,7 @@ const Game: React.FC = () => {
 
 
     const drawSpaceship = () => {
-      p.image(spaceship, lanes[spaceshipLaneIndex], p.height - 50, 40, 40)
+      p.image(spaceship, lanes[spaceshipLaneIndex], p.height - 50, 60, 60)
     }
 
     const checkCollision = (obj1: { x: number; y: number }, obj2: { x: number; y: number }, distance: number): boolean => {
