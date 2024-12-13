@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-const pixeBoy = localFont({
+const Pixeboy = localFont({
   src: "../assets/fonts/Pixeboy.ttf",
   variable: "--font-pixeboy",
   weight: "400",
@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${pixeBoy.variable} antialiased`}>{children}</body>
+      <body className={`${Pixeboy.variable} antialiased`}>{children}</body>
     </html>
   );
 }
