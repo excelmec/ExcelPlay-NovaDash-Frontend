@@ -1,9 +1,17 @@
 'use client'
 
-import React, { useRef, useEffect, useCallback } from 'react'
+import StartPage from './StartPage';
+
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import p5 from 'p5'
 
 const Game: React.FC = () => {
+  const [isGameStarted, setIsGameStarted] = useState(false);
+
+  const startGame = () => {
+    setIsGameStarted(true);
+  };
+
   const gameRef = useRef<HTMLDivElement>(null)
 
   const sketch = useCallback((p: p5) => {
@@ -42,7 +50,7 @@ const Game: React.FC = () => {
     }
 
     p.setup = () => {
-      p.createCanvas(400, 600)
+      p.createCanvas(400, p.windowHeight)
       p.imageMode(p.CENTER)
       p.textFont(retroFont)
       createStars()
@@ -120,8 +128,6 @@ const Game: React.FC = () => {
     const drawBackground = () => {
       p.background(0)
     }
-
-
 
     const drawSpaceship = () => {
       p.image(spaceship, lanes[spaceshipLaneIndex], p.height - 50, 60, 60)
@@ -420,14 +426,14 @@ const Game: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    // Attach p5 instance to the div
-    const p5Instance = new p5(sketch, gameRef.current!)
-
-    // Cleanup p5 instance on unmount
-    return () => {
-      p5Instance.remove()
+    if (isGameStarted) {
+      new p5(sketch, gameRef.current!); // Initialize p5 with the sketch
     }
-  }, [sketch])
+  }, [isGameStarted, sketch]);
+
+  if (!isGameStarted) {
+    return <StartPage onStart={startGame} />;
+  }
 
   return (
     <div
