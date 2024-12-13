@@ -5,7 +5,7 @@ import p5 from 'p5'
 
 const DodgeBlast: React.FC = () => {
   const gameRef = useRef<HTMLDivElement>(null)
-  const [gameState, setGameState] = useState<'menu' | 'playing'>('menu')
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameOver'>('menu')
   const [selectedShip, setSelectedShip] = useState(0)
 
   const sketch = useCallback((p: p5) => {
@@ -25,7 +25,6 @@ const DodgeBlast: React.FC = () => {
     let asteroidImg: p5.Image
     let retroFont: p5.Font
     let points = 0
-    let gameOver = false
     let level = 1
     let shootCooldown = 0
     let powerupActive = false
@@ -34,6 +33,14 @@ const DodgeBlast: React.FC = () => {
     let stars: { x: number; y: number; speed: number }[] = []
     let lastSpeedIncreaseScore = 0
     let touchStartX = 0
+
+    let debugLog: string[] = []
+
+    const logDebug = (message: string) => {
+      console.log(message)
+      debugLog.push(message)
+      if (debugLog.length > 10) debugLog.shift()
+    }
 
     p.preload = () => {
       ships[0] = p.loadImage('/ship1.gif')
@@ -92,94 +99,95 @@ const DodgeBlast: React.FC = () => {
     }
 
     p.draw = () => {
-      p.background(0)
-      updateStars()
-      drawStars()
+      try {
+        p.background(0)
+        updateStars()
+        drawStars()
 
-      if (gameState === 'menu') {
-        drawMenu()
-      } else if (gameState === 'playing') {
-        if (gameOver) {
-          drawGameOver()
-        } else {
+        if (gameState === 'menu') {
+          drawMenu()
+        } else if (gameState === 'playing') {
           updateGame()
+        } else if (gameState === 'gameOver') {
+          drawGameOver()
         }
+
+        // Draw debug log
+        p.fill(255)
+        p.textSize(10)
+        p.textAlign(p.LEFT, p.TOP)
+        debugLog.forEach((log, index) => {
+          p.text(log, 10, p.height - 20 - (index * 15))
+        })
+      } catch (error) {
+        console.error('Error in draw function:', error)
+        logDebug(`Error: ${error.message}`)
       }
     }
 
     const drawMenu = () => {
       // Title with better 3D effect
-      p.textSize(30); // Reduced text size
-      p.textAlign(p.CENTER, p.CENTER);
+      p.textSize(30)
+      p.textAlign(p.CENTER, p.CENTER)
     
       // Stronger pink shadow for "DODGE BLAST"
-      p.fill(255, 20, 147); // Hot pink shadow
+      p.fill(255, 20, 147)
       for (let i = 1; i <= 4; i++) {
-        p.text('DODGE BLAST', p.width / 2 + i, 100 + i);
+        p.text('DODGE BLAST', p.width / 2 + i, 100 + i)
       }
-      p.fill(255, 255, 0); // Brighter yellow text
-      p.text('DODGE BLAST', p.width / 2, 100);
+      p.fill(255, 255, 0)
+      p.text('DODGE BLAST', p.width / 2, 100)
     
-      // Select Ship Text - increased spacing
-      p.textSize(20);
-      p.fill(255);
-      p.text('SELECT SHIP', p.width / 2, 220);
+      p.textSize(20)
+      p.fill(255)
+      p.text('SELECT SHIP', p.width / 2, 220)
     
-      // Ship Name - adjusted color and position
-      p.textSize(16);
-      p.fill(0, 191, 255); // Brighter cyan
-      p.text(`SHIP ${selectedShip + 101}`, p.width / 2, 270);
+      p.textSize(16)
+      p.fill(0, 191, 255)
+      p.text(`SHIP ${selectedShip + 101}`, p.width / 2, 270)
     
-      // Draw current ship - adjusted position
       if (ships[selectedShip]) {
-        p.image(ships[selectedShip], p.width / 2, 350, 80, 80);
+        p.image(ships[selectedShip], p.width / 2, 350, 80, 80)
       }
     
-      // Navigation arrows - made more visible and clickable
-      p.textSize(30);
+      p.textSize(30)
       if (selectedShip > 0) {
-        // Left arrow with hover effect
-        const leftArrowX = 80;
+        const leftArrowX = 80
         const isHoveringLeft =
           p.mouseX > leftArrowX - 20 &&
           p.mouseX < leftArrowX + 20 &&
           p.mouseY > 340 &&
-          p.mouseY < 360;
-        p.fill(isHoveringLeft ? 200 : 255);
-        p.text('←', leftArrowX, 350);
+          p.mouseY < 360
+        p.fill(isHoveringLeft ? 200 : 255)
+        p.text('←', leftArrowX, 350)
       }
       if (selectedShip < ships.length - 1) {
-        // Right arrow with hover effect
-        const rightArrowX = p.width - 80;
+        const rightArrowX = p.width - 80
         const isHoveringRight =
           p.mouseX > rightArrowX - 20 &&
           p.mouseX < rightArrowX + 20 &&
           p.mouseY > 340 &&
-          p.mouseY < 360;
-        p.fill(isHoveringRight ? 200 : 255);
-        p.text('→', rightArrowX, 350);
+          p.mouseY < 360
+        p.fill(isHoveringRight ? 200 : 255)
+        p.text('→', rightArrowX, 350)
       }
     
-      // Start Game Button - improved styling
-      p.noStroke();
-      const buttonY = 500;
-      const buttonHeight = 60;
+      p.noStroke()
+      const buttonY = 500
+      const buttonHeight = 60
       const isHoveringStart =
         p.mouseX > p.width / 2 - 100 &&
         p.mouseX < p.width / 2 + 100 &&
         p.mouseY > buttonY &&
-        p.mouseY < buttonY + buttonHeight;
+        p.mouseY < buttonY + buttonHeight
     
-      // Button background with hover effect
-      p.fill(0, 0, 0, isHoveringStart ? 230 : 200);
-      p.rect(p.width / 2 - 100, buttonY, 200, buttonHeight, 15);
+      p.fill(0, 0, 0, isHoveringStart ? 230 : 200)
+      p.rect(p.width / 2 - 100, buttonY, 200, buttonHeight, 15)
     
-      // Button text
-      p.textSize(24);
-      p.fill(isHoveringStart ? 255 : 220);
-      p.text('START GAME', p.width / 2, buttonY + buttonHeight / 2);
-    };
-    
+      p.textSize(24)
+      p.fill(isHoveringStart ? 255 : 220)
+      p.text('START GAME', p.width / 2, buttonY + buttonHeight / 2)
+    }
 
     const updateGame = () => {
       drawSpaceship()
@@ -190,16 +198,13 @@ const DodgeBlast: React.FC = () => {
       handlePowerup()
       updateAndDrawHUD()
 
-      // Increase difficulty over time
       if (p.frameCount % 600 === 0) {
         level++
         speedMultiplier += 0.1
       }
 
-      // Gradually increase score over time
       points += 0.01 * speedMultiplier
 
-      // Check and update game speed based on score
       checkAndUpdateGameSpeed()
     }
 
@@ -212,12 +217,10 @@ const DodgeBlast: React.FC = () => {
     }
 
     const handleObstacles = () => {
-      // Generate asteroids
       if (p.frameCount % 90 === 0) {
         const laneIndex = p.floor(p.random(0, lanes.length))
         const newAsteroid = { x: lanes[laneIndex], y: 0, type: 'asteroid' as const }
 
-        // Check if the new asteroid overlaps with existing obstacles or enemy spaceships
         const isOverlapping = [...obstacles, ...enemySpaceships].some(obj =>
           checkCollision(newAsteroid, obj, 80)
         )
@@ -227,14 +230,12 @@ const DodgeBlast: React.FC = () => {
         }
       }
 
-      // Generate powerups every 2 minutes
-      if (p.frameCount - lastPowerupTime >= 7200) { // 7200 frames = 2 minutes at 60 fps
+      if (p.frameCount - lastPowerupTime >= 7200) {
         const laneIndex = p.floor(p.random(0, lanes.length))
         obstacles.push({ x: lanes[laneIndex], y: 0, type: 'powerup-slow' })
         lastPowerupTime = p.frameCount
       }
 
-      // Move and draw obstacles
       obstacles.forEach((obstacle, index) => {
         if (obstacle.type === 'powerup-slow') {
           p.image(powerupSlowImg, obstacle.x, obstacle.y, 30, 30)
@@ -243,7 +244,6 @@ const DodgeBlast: React.FC = () => {
         }
         obstacle.y += baseSpeed * speedMultiplier * 0.5
 
-        // Collision detection
         if (
           obstacle.y > p.height - 70 &&
           obstacle.y < p.height - 30 &&
@@ -253,18 +253,16 @@ const DodgeBlast: React.FC = () => {
             activatePowerup(obstacle.type)
             obstacles.splice(index, 1)
           } else if (obstacle.type === 'asteroid') {
-            createExplosion(obstacle.x, p.height - 50) // Create explosion at collision point
-            gameOver = true
+            createExplosion(obstacle.x, p.height - 50)
+            setGameState('gameOver')
           }
         }
       })
 
-      // Remove obstacles that are out of view
       obstacles = obstacles.filter((obstacle) => obstacle.y < p.height)
     }
 
     const handleEnemySpaceships = () => {
-      // Generate enemy spaceships
       if (p.frameCount % 120 === 0 && enemySpaceships.length === 0) {
         const availableLanes = [0, 1, 2].filter(lane => 
           !enemySpaceships.some(enemy => enemy.lane === lane)
@@ -274,7 +272,6 @@ const DodgeBlast: React.FC = () => {
           const laneIndex = availableLanes[Math.floor(p.random(0, availableLanes.length))]
           const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex }
 
-          // Check if the new enemy overlaps with existing obstacles
           const isOverlapping = obstacles.some(obj =>
             checkCollision(newEnemy, obj, 80)
           )
@@ -289,12 +286,10 @@ const DodgeBlast: React.FC = () => {
         p.image(enemySpaceshipImg, enemy.x, enemy.y, 40, 40)
         enemy.y += baseSpeed * speedMultiplier * 0.5
 
-        // Enemy shooting
-        if (p.frameCount % 120 === 0) { // Shoot every 2 seconds (assuming 60 fps)
+        if (p.frameCount % 120 === 0) {
           bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true })
         }
 
-        // Collision detection with player
         if (
           enemy.y > p.height - 70 &&
           enemy.y < p.height - 30 &&
@@ -302,11 +297,10 @@ const DodgeBlast: React.FC = () => {
         ) {
           createExplosion(enemy.x, enemy.y)
           enemySpaceships.splice(index, 1)
-          gameOver = true
+          setGameState('gameOver')
         }
       })
 
-      // Remove enemy spaceships that are out of view
       enemySpaceships = enemySpaceships.filter((enemy) => enemy.y < p.height)
     }
 
@@ -317,24 +311,21 @@ const DodgeBlast: React.FC = () => {
         bullet.y += bullet.isEnemy ? 5 : -10
 
         if (!bullet.isEnemy) {
-          // Check for collision with enemy spaceships
           enemySpaceships.forEach((enemy, enemyIndex) => {
             if (p.dist(bullet.x, bullet.y, enemy.x, enemy.y) < 20) {
               createExplosion(enemy.x, enemy.y)
               enemySpaceships.splice(enemyIndex, 1)
               bullets.splice(index, 1)
-              points += 20 // Increase score only when destroying an enemy spaceship
+              points += 20
             }
           })
 
-          // Check for collision with asteroids
           obstacles.forEach((obstacle) => {
             if (obstacle.type === 'asteroid' && p.dist(bullet.x, bullet.y, obstacle.x, obstacle.y) < 15) {
               bullets.splice(index, 1)
             }
           })
         } else {
-          // Check for collision with player
           if (
             bullet.y > p.height - 70 &&
             bullet.y < p.height - 30 &&
@@ -342,15 +333,13 @@ const DodgeBlast: React.FC = () => {
           ) {
             createExplosion(bullet.x, p.height - 50)
             bullets.splice(index, 1)
-            gameOver = true
+            setGameState('gameOver')
           }
         }
       })
 
-      // Remove bullets that are out of view
       bullets = bullets.filter((bullet) => bullet.y > 0 && bullet.y < p.height)
 
-      // Decrease shoot cooldown
       if (shootCooldown > 0) shootCooldown--
     }
 
@@ -435,16 +424,10 @@ const DodgeBlast: React.FC = () => {
       if (gameState === 'playing') {
         if (event.key === 'ArrowLeft') changeLane(-1)
         if (event.key === 'ArrowRight') changeLane(1)
-        if (event.key === ' ') {
-          if (gameOver) {
-            resetGame()
-          } else {
-            shoot()
-          }
-        }
-        if (event.key === 'Enter' && gameOver) {
-          setGameState('menu')
-        }
+        if (event.key === ' ') shoot()
+      } else if (gameState === 'gameOver') {
+        if (event.key === ' ') resetGame()
+        if (event.key === 'Enter') setGameState('menu')
       } else if (gameState === 'menu') {
         if (event.key === 'ArrowLeft' && selectedShip > 0) {
           setSelectedShip(prev => prev - 1)
@@ -466,13 +449,14 @@ const DodgeBlast: React.FC = () => {
       enemySpaceships = []
       explosions = []
       points = 0
-      gameOver = false
       level = 1
       shootCooldown = 0
       powerupActive = false
       powerupTimer = 0
       lastPowerupTime = 0
       lastSpeedIncreaseScore = 0
+      setGameState('playing')
+      logDebug('Game reset')
     }
 
     // Touch events for mobile swipe gestures
@@ -490,21 +474,19 @@ const DodgeBlast: React.FC = () => {
         const swipeDistance = touchEndX - touchStartX
 
         if (gameState === 'playing') {
-          if (gameOver) {
-            // Check if "RETURN TO MENU" button is tapped
-            if (touchEndY > p.height / 2 + 70 && touchEndY < p.height / 2 + 110) {
-              setGameState('menu')
-            } else {
-              resetGame()
-            }
+          if (swipeDistance > 50) {
+            changeLane(1) // Move spaceship to the right
+          } else if (swipeDistance < -50) {
+            changeLane(-1) // Move spaceship to the left
           } else {
-            if (swipeDistance > 50) {
-              changeLane(1) // Move spaceship to the right
-            } else if (swipeDistance < -50) {
-              changeLane(-1) // Move spaceship to the left
-            } else {
-              shoot() // Tap to shoot
-            }
+            shoot() // Tap to shoot
+          }
+        } else if (gameState === 'gameOver') {
+          // Check if "RETURN TO MENU" button is tapped
+          if (touchEndY > p.height / 2 + 70 && touchEndY < p.height / 2 + 110) {
+            setGameState('menu')
+          } else {
+            resetGame()
           }
         } else if (gameState === 'menu') {
           // Check if ship selection arrows are tapped - wider touch areas
@@ -555,7 +537,7 @@ const DodgeBlast: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyPress)
     }
-  }, [selectedShip, gameState])
+  }, [selectedShip, gameState, setGameState, setSelectedShip])
 
   useEffect(() => {
     // Attach p5 instance to the div
