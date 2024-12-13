@@ -33,7 +33,7 @@ const Game: React.FC = () => {
     let touchStartX = 0
 
     p.preload = () => {
-      spaceship = p.loadImage('/spaceship.png')
+      spaceship = p.loadImage('/ship1.gif')
       enemySpaceshipImg = p.loadImage('/enemy-spaceship.png')
       powerupSlowImg = p.loadImage('/powerup.png')
       explosionImg = p.loadImage('/explosion.png')
