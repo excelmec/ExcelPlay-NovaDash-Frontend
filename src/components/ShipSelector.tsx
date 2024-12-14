@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 
 import Ship_1 from "@/assets/ships/ship_1.gif";
 import Ship_2 from "@/assets/ships/ship_2.gif";
+import Ship_3 from "@/assets/ships/ship_3.gif";
+import Ship_4 from "@/assets/ships/ship_4.gif";
+import Ship_5 from "@/assets/ships/ship_5.gif";
 
 import Image from "next/image";
 
@@ -11,6 +14,9 @@ import Arrow_Right from "@/assets/icons/arrow_right.svg";
 const slides = [
   { src: Ship_1.src, alt: "Ship 1" },
   { src: Ship_2.src, alt: "Ship 2" },
+  { src: Ship_3.src, alt: "Ship 3" },
+  { src: Ship_4.src, alt: "Ship 4" },
+  { src: Ship_5.src, alt: "Ship 5" },
 ];
 
 export default function ShipSelector({ onShipSelect }: { onShipSelect: (ship: { src: string; alt: string }) => void }) {
