@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-    body {
-        @apply bg-darkIndigo_bg;
+    html,body {
+        background: #fff;
+        box-sizing: border-box;
     }
 }
 
@@ -12,6 +13,20 @@
     .specialBg {
         @apply text-[42px] text-white z-10 rounded-[20px] bg-white/[0.08] backdrop-blur-[12px] max-h-[80px] flex justify-center items-center py-[16px] max-w-[317px] px-[60px];
         box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.09);
+    }
+
+    .navStyle {
+        @apply bg-white/[0.075] backdrop-blur-[12px] max-h-[80px];
+        box-shadow: inset 0 -7px 16px rgba(255, 255, 255, 0.09);
+    }
+
+    .navBorder {
+        background: 
+            linear-gradient(#191828 0 0) padding-box,
+            linear-gradient(150deg , rgba(255, 255, 255, 0.34) 28%, rgba(255, 255, 255, 0)) border-box;
+        color: #313149;
+        border-bottom: 2px solid transparent;
+        display: inline-block;
     }
 
     .borderGradient {
