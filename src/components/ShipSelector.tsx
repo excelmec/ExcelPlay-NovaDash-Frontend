@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import Ship_1 from "@/assets/ships/ship_1.gif";
-import Ship_2 from "@/assets/ships/ship_1.gif";
+import Ship_2 from "@/assets/ships/ship_2.gif";
 
 import Image from "next/image";
 
