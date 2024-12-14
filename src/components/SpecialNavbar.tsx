@@ -7,7 +7,7 @@ import EXCEL_LOGO from "@/assets/images/excel.png";
 
 export default function NavbarProfileLogo() {
   return (
-    <div className="w-full navBorder max-h-[86px] h-full absolute top-0">
+    <div className="w-full navBorder max-h-[84px] h-full absolute z-10 top-0">
       <div className="flex items-center justify-between px-[25px] py-2 backdrop-blur-[12px] w-full max-h-[96px] h-full navStyle">
         <a href="./" className="flex shrink-0 items-center">
           <Image alt="Excel '24" src={EXCEL_LOGO} className="h-[42px] w-auto" />
