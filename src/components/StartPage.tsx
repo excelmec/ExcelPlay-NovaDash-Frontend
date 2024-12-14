@@ -17,7 +17,7 @@ const StartPage = ({ onStart }: { onStart: () => void }) => {
   };
 
   return (
-    <div className="flex relative bg-darkIndigo_bg max-w-sm mx-auto max-h-screen pb-[10px] overflow-x-hidden flex-col gap-[18px] items-center h-screen font-pixeboy justify-between">
+    <div className="flex relative bg-darkIndigo_bg max-w-sm mx-auto max-h-screen pb-[10px] overflow-x-hidden flex-col items-center h-screen font-pixeboy justify-around">
       <Navbar />
 
       <Image
@@ -26,7 +26,7 @@ const StartPage = ({ onStart }: { onStart: () => void }) => {
         className="max-w-[256px] mt-[148px]"
       />
 
-      <div className="flex flex-col gap-[15px] mt-[-16px] scale-90">
+      <div className="flex flex-col gap-[15px] scale-90">
         <div className="flex flex-col justify-center items-center gap-0">
           <p className="text-[30px] text-white ">select ship</p>
           <p className="text-skyblue_btn text-[18px] mt-[-7px]">
@@ -39,7 +39,7 @@ const StartPage = ({ onStart }: { onStart: () => void }) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-[27px] mt-[-24px]">
+      <div className="flex flex-col gap-[27px] mt-[-8px]">
         <div className="flex justify-center gap-[6px] items-center flex-col text-[18px]">
           <div className="text-center flex flex-col text-cherryPink_text">
             <p>YOUR RANK : 20XX</p>
@@ -56,7 +56,7 @@ const StartPage = ({ onStart }: { onStart: () => void }) => {
           </div>
         </div>
 
-        <div className="borderGradient mb-[20px]">
+        <div className="borderGradient scale-95 mt-[-16px]">
           <button onClick={onStart} className="specialBg">
             <p className="pt-[3.5px]">Start Game</p>
           </button>
