@@ -16,7 +16,7 @@ const Game: React.FC = () => {
 
   const sketch = useCallback((p: p5) => {
     let spaceshipLaneIndex = 1 // Start in the center lane
-    const lanes = [100, 200, 300] // X positions for 3 lanes
+    const lanes = [100, 200, 300, 400] // X positions for 3 lanes
     const baseSpeed = 2 // Initial speed of obstacles and enemies
     let speedMultiplier = 1 // Speed multiplier for increasing difficulty
     let obstacles: { x: number; y: number; type: string }[] = []
@@ -50,7 +50,7 @@ const Game: React.FC = () => {
     }
 
     p.setup = () => {
-      p.createCanvas(400, p.windowHeight)
+      p.createCanvas(500, p.windowHeight)
       p.imageMode(p.CENTER)
       p.textFont(retroFont)
       createStars()
