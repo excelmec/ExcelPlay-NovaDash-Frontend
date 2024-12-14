@@ -42,7 +42,7 @@ const Game: React.FC = () => {
 
     p.preload = () => {
       spaceship = p.loadImage('/ship1.gif')
-      enemySpaceshipImg = p.loadImage('/enemy-spaceship.png')
+      enemySpaceshipImg = p.loadImage('/enemy.gif')
       powerupSlowImg = p.loadImage('/powerup.png')
       explosionImg = p.loadImage('/explosion.png')
       asteroidImg = p.loadImage('/asteroid.png')
