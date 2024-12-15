@@ -12,11 +12,11 @@ import Arrow_Left from "@/assets/icons/arrow_left.svg";
 import Arrow_Right from "@/assets/icons/arrow_right.svg";
 
 const slides = [
-  { src: Ship_1.src, alt: "Ship 1" },
-  { src: Ship_2.src, alt: "Ship 2" },
-  { src: Ship_3.src, alt: "Ship 3" },
-  { src: Ship_4.src, alt: "Ship 4" },
-  { src: Ship_5.src, alt: "Ship 5" },
+  { src: Ship_1.src, alt: "Graviton" },
+  { src: Ship_2.src, alt: "Nightshard" },
+  { src: Ship_3.src, alt: "Warpfire" },
+  { src: Ship_4.src, alt: "Flarewing" },
+  { src: Ship_5.src, alt: "Starblade" },
 ];
 
 export default function ShipSelector({ onShipSelect }: { onShipSelect: (ship: { src: string; alt: string }) => void }) {
