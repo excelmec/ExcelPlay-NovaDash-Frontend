@@ -215,7 +215,7 @@ const Game: React.FC = () => {
       }
 
       enemySpaceships.forEach((enemy, index) => {
-        p.image(enemySpaceshipImg, enemy.x, enemy.y, 40, 40)
+        p.image(enemySpaceshipImg, enemy.x, enemy.y, 60, 60)
         enemy.y += baseSpeed * speedMultiplier * 0.5
 
         // Enemy shooting
@@ -249,7 +249,7 @@ const Game: React.FC = () => {
         if (!bullet.isEnemy) {
           // Check for collision with enemy spaceships
           enemySpaceships.forEach((enemy, enemyIndex) => {
-            if (p.dist(bullet.x, bullet.y, enemy.x, enemy.y) < 20) {
+            if (p.dist(bullet.x, bullet.y, enemy.x, enemy.y) < 30) {
               createExplosion(enemy.x, enemy.y)
               enemySpaceships.splice(enemyIndex, 1)
               bullets.splice(index, 1)
@@ -445,3 +445,4 @@ const Game: React.FC = () => {
 }
 
 export default Game
+
