@@ -20,7 +20,7 @@ const Game: React.FC = () => {
     const baseSpeed = 2 // Initial speed of obstacles and enemies
     let speedMultiplier = 1 // Speed multiplier for increasing difficulty
     let obstacles: { x: number; y: number; type: string }[] = []
-    let bullets: { x: number; y: number; isEnemy: boolean }[] = []
+    let bullets: { x: number; y: number; isEnemy: boolean; speed: number }[] = []
     let enemySpaceships: { x: number; y: number; lane: number }[] = []
     let explosions: { x: number; y: number; frame: number; size: number }[] = []
     let spaceship: p5.Image
@@ -219,8 +219,8 @@ const Game: React.FC = () => {
         enemy.y += baseSpeed * speedMultiplier * 0.5
 
         // Enemy shooting
-        if (p.frameCount % 120 === 0) { // Shoot every 2 seconds (assuming 60 fps)
-          bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true })
+        if (p.frameCount % Math.floor(150 / speedMultiplier) === 0) { // Changed from 120 to 150
+          bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true, speed: 5 * speedMultiplier })
         }
 
         // Collision detection with player
@@ -244,7 +244,7 @@ const Game: React.FC = () => {
       bullets.forEach((bullet, index) => {
         p.fill(bullet.isEnemy ? 255 : 0, bullet.isEnemy ? 0 : 255, 0)
         p.rect(bullet.x - 2, bullet.y, 4, 10)
-        bullet.y += bullet.isEnemy ? 5 : -10
+        bullet.y += bullet.isEnemy ? bullet.speed : -bullet.speed
 
         if (!bullet.isEnemy) {
           // Check for collision with enemy spaceships
@@ -356,8 +356,8 @@ const Game: React.FC = () => {
 
     const shoot = () => {
       if (shootCooldown === 0) {
-        bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70, isEnemy: false })
-        shootCooldown = 15 // Set cooldown to prevent rapid firing
+        bullets.push({ x: lanes[spaceshipLaneIndex], y: p.height - 70, isEnemy: false, speed: 10 * speedMultiplier })
+        shootCooldown = Math.max(5, Math.floor(20 / speedMultiplier)) // Adjust cooldown based on speed multiplier
       }
     }
 
