@@ -19,6 +19,7 @@ export default function NavbarProfileLogo() {
             src="https://i.pinimg.com/736x/21/7e/99/217e9997e6c7c580e871696c03a0aaa9.jpg"
             className="size-9 rounded-full"
           />
+          {/* CHANGE THE PROFILE PICTURE CODE */}
         </div>
       </div>
     </div>

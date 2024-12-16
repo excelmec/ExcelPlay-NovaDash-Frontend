@@ -43,15 +43,19 @@ const StartPage = ({ onStart }: { onStart: () => void }) => {
         <div className="flex justify-center gap-[6px] items-center flex-col text-[18px]">
           <div className="text-center flex flex-col text-cherryPink_text">
             <p>YOUR RANK : 20XX</p>
-            <p className="mt-[-8px]">YOUR HIGH SCORE : 4XX</p>
+            {/* CHANGE RANK CODE  */}
+            <p className="mt-[-8px]">YOUR HIGH SCORE : 43XX</p> 
+            {/* CHANGE SCORE CODE  */}
           </div>
 
           <div className="text-center flex flex-col text-[16px]">
             <a href="#" className="text-skyblue_btn underline underline-offset-2 ">
               VISIT LEADERBOARD
+              {/* CHANGE LEADERBOARD LINK */}
             </a>
             <a href="#" className="text-coralRed_btn cursor-pointer underline underline-offset-2 mt-[-5px]">
               GO BACK
+              {/* CHANGE GO BACK LINK */}
             </a>
           </div>
         </div>
