@@ -14,7 +14,7 @@ const StartPage = () => {
   const [selectedShip, setSelectedShip] = useState(ShipDetails[0]);
   const [isGameStarted, setIsGameStarted] = useState(false);
 
-  const handleShipSelect = (ship: { src: string; alt: string }) => {
+  const handleShipSelect = (ship: { src: string; alt: string; name: string }) => {
     setSelectedShip(ship);
   };
 

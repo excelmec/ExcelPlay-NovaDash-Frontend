@@ -4,7 +4,19 @@ import Image from "next/image";
 import Arrow_Left from "@/assets/icons/arrow_left.svg";
 import Arrow_Right from "@/assets/icons/arrow_right.svg";
 
-export default function ShipSelector({ onShipSelect, ships }: { onShipSelect: (ship: { src: string; alt: string }) => void; ships: Array<{ src: string; alt: string; name?: string }> }) {
+// Define the interface for a Ship
+interface Ship {
+  src: string;
+  alt: string;
+  name: string; // Ensure name is included
+}
+
+interface ShipSelectorProps {
+  onShipSelect: (ship: Ship) => void; // Expect full ship object
+  ships: Ship[]; // Array of ships
+}
+
+export default function ShipSelector({ onShipSelect, ships }: ShipSelectorProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handlePrev = () => {
