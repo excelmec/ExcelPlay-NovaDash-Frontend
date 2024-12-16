@@ -1,44 +1,47 @@
 import { useState, useEffect } from "react";
+
+import Ship_1 from "@/assets/ships/ship_1.gif";
+import Ship_2 from "@/assets/ships/ship_2.gif";
+import Ship_3 from "@/assets/ships/ship_3.gif";
+import Ship_4 from "@/assets/ships/ship_4.gif";
+import Ship_5 from "@/assets/ships/ship_5.gif";
+
 import Image from "next/image";
 
 import Arrow_Left from "@/assets/icons/arrow_left.svg";
 import Arrow_Right from "@/assets/icons/arrow_right.svg";
 
-// Define the interface for a Ship
-interface Ship {
-  src: string;
-  alt: string;
-  name: string; // Ensure name is included
-}
+const slides = [
+  { src: Ship_1.src, alt: "Graviton" },
+  { src: Ship_2.src, alt: "Nightshard" },
+  { src: Ship_3.src, alt: "Warpfire" },
+  { src: Ship_4.src, alt: "Flarewing" },
+  { src: Ship_5.src, alt: "Starblade" },
+];
 
-interface ShipSelectorProps {
-  onShipSelect: (ship: Ship) => void; // Expect full ship object
-  ships: Ship[]; // Array of ships
-}
-
-export default function ShipSelector({ onShipSelect, ships }: ShipSelectorProps) {
+export default function ShipSelector({ onShipSelect }: { onShipSelect: (ship: { src: string; alt: string }) => void }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handlePrev = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? ships.length - 1 : prevIndex - 1
+      prevIndex === 0 ? slides.length - 1 : prevIndex - 1
     );
   };
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === ships.length - 1 ? 0 : prevIndex + 1
+      prevIndex === slides.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   useEffect(() => {
-    onShipSelect(ships[currentIndex]); // Pass selected ship to parent
-  }, [currentIndex, onShipSelect, ships]);
+    onShipSelect(slides[currentIndex]); // Passing the selected ship to the parent
+  }, [currentIndex, onShipSelect]);
 
   return (
     <div className="relative w-full">
       <div className="relative h-[110px] overflow-hidden rounded-lg">
-        {ships.map((ship, index) => (
+        {slides.map((slide, index) => (
           <div
             key={index}
             className={`absolute inset-0 transition-all duration-700 ease-in-out ${
@@ -46,8 +49,8 @@ export default function ShipSelector({ onShipSelect, ships }: ShipSelectorProps)
             }`}
           >
             <img
-              src={ship.src}
-              alt={ship.alt}
+              src={slide.src}
+              alt={slide.alt}
               className="block w-full h-full object-contain"
             />
           </div>

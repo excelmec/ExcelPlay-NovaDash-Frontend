@@ -1,11 +1,9 @@
 "use client";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-const StartPage = dynamic(() => import('@/components/StartPage'), {
-  ssr: false,
-});
+const Game = dynamic(() => import("@/components/Game"), { ssr: false });
 
 export default function HomePage() {
-  return <StartPage />;
+  return <Game/>;
 }
