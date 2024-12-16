@@ -43,7 +43,6 @@ const Game: React.FC = () => {
         [];
       spaceshipRef.current = null;
       let enemySpaceshipImg: p5.Image;
-      let powerupSlowImg: p5.Image;
       let explosionImg: p5.Image;
       let asteroidImg: p5.Image;
       let retroFont: p5.Font;
@@ -51,9 +50,6 @@ const Game: React.FC = () => {
       let gameOver = false;
       let level = 1;
       let shootCooldown = 0;
-      let powerupActive = false;
-      let powerupTimer = 0;
-      let lastPowerupTime = 0;
       let stars: { x: number; y: number; speed: number }[] = [];
       let lastSpeedIncreaseScore = 0;
       let touchStartX = 0;
@@ -61,7 +57,6 @@ const Game: React.FC = () => {
       p.preload = () => {
         // spaceship = p.loadImage(`${selectedShip.src}`)
         enemySpaceshipImg = p.loadImage("/enemy.gif");
-        powerupSlowImg = p.loadImage("/powerup.png");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
         retroFont = p.loadFont("/PressStart2P.ttf");
@@ -120,7 +115,6 @@ const Game: React.FC = () => {
       };
 
       p.draw = () => {
-        
         drawBackground();
         updateStars();
         drawStars();
@@ -129,7 +123,6 @@ const Game: React.FC = () => {
         handleEnemySpaceships();
         handleBullets();
         handleExplosions();
-        handlePowerup();
         updateAndDrawHUD();
 
         // Increase difficulty over time
@@ -183,19 +176,9 @@ const Game: React.FC = () => {
           }
         }
 
-        // Generate powerups every 2 minutes
-        if (p.frameCount - lastPowerupTime >= 7200) {
-          // 7200 frames = 2 minutes at 60 fps
-          const laneIndex = p.floor(p.random(0, lanes.length));
-          obstacles.push({ x: lanes[laneIndex], y: 0, type: "powerup-slow" });
-          lastPowerupTime = p.frameCount;
-        }
-
         // Move and draw obstacles
         obstacles.forEach((obstacle, index) => {
-          if (obstacle.type === "powerup-slow") {
-            p.image(powerupSlowImg, obstacle.x, obstacle.y, 30, 30);
-          } else if (obstacle.type === "asteroid") {
+          if (obstacle.type === "asteroid") {
             p.image(asteroidImg, obstacle.x, obstacle.y, 30, 30);
           }
           obstacle.y += baseSpeed * speedMultiplier * 0.5;
@@ -206,10 +189,7 @@ const Game: React.FC = () => {
             obstacle.y < p.height - 30 &&
             obstacle.x === lanes[spaceshipLaneIndex]
           ) {
-            if (obstacle.type === "powerup-slow") {
-              activatePowerup(obstacle.type);
-              obstacles.splice(index, 1);
-            } else if (obstacle.type === "asteroid") {
+            if (obstacle.type === "asteroid") {
               createExplosion(obstacle.x, p.height - 50); // Create explosion at collision point
               gameOver = true;
               p.noLoop();
@@ -349,37 +329,12 @@ const Game: React.FC = () => {
         });
       };
 
-      const handlePowerup = () => {
-        if (powerupActive) {
-          powerupTimer--;
-          if (powerupTimer <= 0) {
-            powerupActive = false;
-            speedMultiplier = 1;
-          }
-        }
-      };
-
-      const activatePowerup = (type: string) => {
-        powerupActive = true;
-        powerupTimer = 300; // 5 seconds at 60 fps
-        if (type === "powerup-slow") {
-          speedMultiplier = 0.5; // Slow down obstacles and enemies
-        }
-      };
-
       const updateAndDrawHUD = () => {
         p.fill(255);
         p.textSize(16);
         p.text(`SCORE: ${Math.floor(points)}`, 10, 20);
         p.text(`LEVEL: ${level}`, 10, 40);
-
-        if (powerupActive) {
-          p.fill(0, 255, 0);
-          p.text("SLOW-DOWN ACTIVE!", p.width / 2 - 80, 20);
-        }
       };
-
-      
 
       const changeLane = (direction: number) => {
         spaceshipLaneIndex = p.constrain(
@@ -424,9 +379,6 @@ const Game: React.FC = () => {
         gameOver = false;
         level = 1;
         shootCooldown = 0;
-        powerupActive = false;
-        powerupTimer = 0;
-        lastPowerupTime = 0;
         lastSpeedIncreaseScore = 0;
         p.loop();
       };
@@ -491,3 +443,4 @@ const Game: React.FC = () => {
 };
 
 export default Game;
+
