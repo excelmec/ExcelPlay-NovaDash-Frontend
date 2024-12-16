@@ -36,11 +36,13 @@ const Game: React.FC = () => {
       const lanes = [100, 200, 300, 400]; // X positions for 3 lanes
       const baseSpeed = 2; // Initial speed of obstacles and enemies
       let speedMultiplier = 1; // Speed multiplier for increasing difficulty
+      const MAX_BULLET_SPEED = 20; // Maximum speed for bullets
+      const BASE_ENEMY_SHOOT_INTERVAL = 120; // Base interval for enemy shooting (in frames)
+      const MIN_ENEMY_SHOOT_INTERVAL = 60; // Minimum interval for enemy shooting (in frames)
       let obstacles: { x: number; y: number; type: string }[] = [];
       let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
       let enemySpaceships: { x: number; y: number; lane: number }[] = [];
-      let explosions: { x: number; y: number; frame: number; size: number }[] =
-        [];
+      let explosions: { x: number; y: number; frame: number; size: number }[] = [];
       spaceshipRef.current = null;
       let enemySpaceshipImg: p5.Image;
       let explosionImg: p5.Image;
@@ -55,7 +57,6 @@ const Game: React.FC = () => {
       let touchStartX = 0;
 
       p.preload = () => {
-        // spaceship = p.loadImage(`${selectedShip.src}`)
         enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
@@ -99,7 +100,7 @@ const Game: React.FC = () => {
       };
 
       const checkAndUpdateGameSpeed = () => {
-        const scoreThresholds = [100, 200, 500, 1000, 2000, 2500, 3000, 4000];
+        const scoreThresholds = [100, 200, 500, 1000, 2500, 9000];
         const currentThreshold = scoreThresholds.find(
           (threshold) =>
             points >= threshold && threshold > lastSpeedIncreaseScore
@@ -229,8 +230,7 @@ const Game: React.FC = () => {
           enemy.y += baseSpeed * speedMultiplier * 0.5;
 
           // Enemy shooting
-          if (p.frameCount % 120 === 0) {
-            // Shoot every 2 seconds (assuming 60 fps)
+          if (p.frameCount % BASE_ENEMY_SHOOT_INTERVAL === 0) {
             bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true });
           }
 
@@ -255,7 +255,8 @@ const Game: React.FC = () => {
         bullets.forEach((bullet, index) => {
           p.fill(bullet.isEnemy ? 255 : 0, bullet.isEnemy ? 0 : 255, 0);
           p.rect(bullet.x - 2, bullet.y, 4, 10);
-          bullet.y += bullet.isEnemy ? 5 : -10;
+          const bulletSpeed = Math.min((bullet.isEnemy ? 5 : -10) * Math.sqrt(speedMultiplier), MAX_BULLET_SPEED);
+          bullet.y += bulletSpeed;
 
           if (!bullet.isEnemy) {
             // Check for collision with enemy spaceships
