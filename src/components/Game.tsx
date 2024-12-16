@@ -120,11 +120,7 @@ const Game: React.FC = () => {
       };
 
       p.draw = () => {
-        if (gameOver) {
-          drawGameOver();
-          return;
-        }
-
+        
         drawBackground();
         updateStars();
         drawStars();
@@ -383,18 +379,7 @@ const Game: React.FC = () => {
         }
       };
 
-      const drawGameOver = () => {
-        p.background(0);
-        drawStars();
-        p.fill(255);
-        p.textAlign(p.CENTER, p.CENTER);
-        p.textSize(32);
-        p.text("GAME OVER", p.width / 2, p.height / 2 - 40);
-        p.textSize(16);
-        p.text(`FINAL SCORE: ${Math.floor(points)}`, p.width / 2, p.height / 2);
-        p.text(`LEVEL REACHED: ${level}`, p.width / 2, p.height / 2 + 30);
-        p.text("PRESS SPACE TO RESTART", p.width / 2, p.height / 2 + 60);
-      };
+      
 
       const changeLane = (direction: number) => {
         spaceshipLaneIndex = p.constrain(
