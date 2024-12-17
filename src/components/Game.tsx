@@ -1,30 +1,12 @@
 "use client";
-
-import StartPage from "./StartPage";
-import ShipSelector from "./ShipSelector";
-
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import p5 from "p5";
 
-const Game: React.FC = () => {
-  const [isGameStarted, setIsGameStarted] = useState(false);
+interface GameProps {
+  selectedShip: { src: string; alt: string };
+}
 
-  const startGame = () => {
-    setIsGameStarted(true);
-  };
-
-  const [selectedShip, setSelectedShip] = useState<{
-    src: string;
-    alt: string;
-  }>({
-    src: "/ship1.gif",
-    alt: "Default Ship",
-  });
-
-  const handleShipSelect = (ship: { src: string; alt: string }) => {
-    setSelectedShip(ship);
-  };
-
+const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const gameRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<p5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
@@ -32,6 +14,21 @@ const Game: React.FC = () => {
   const sketch = useCallback(
     (p: p5) => {
       p5Ref.current = p;
+      // Only add key listeners in the browser
+      const isClient = typeof window !== "undefined";
+      const handleKeyPress = (event: KeyboardEvent) => {
+        if (event.key === "ArrowLeft") changeLane(-1);
+        if (event.key === "ArrowRight") changeLane(1);
+        if (event.key === " ") {
+          if (gameOver) resetGame();
+          else shoot();
+        }
+      };
+
+      if (isClient) {
+        window.addEventListener("keydown", handleKeyPress);
+      }
+
       let spaceshipLaneIndex = 1; // Start in the center lane
       const lanes = [100, 200, 300, 400]; // X positions for 3 lanes
       const baseSpeed = 2; // Initial speed of obstacles and enemies
@@ -57,6 +54,7 @@ const Game: React.FC = () => {
       let touchStartX = 0;
 
       p.preload = () => {
+        spaceshipRef.current = p.loadImage(selectedShip.src);
         enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
@@ -64,7 +62,6 @@ const Game: React.FC = () => {
       };
 
       p.setup = () => {
-        spaceshipRef.current = p.loadImage(`${selectedShip.src}`);
         p.createCanvas(500, p.windowHeight);
         p.imageMode(p.CENTER);
         p.textFont(retroFont);
@@ -356,19 +353,6 @@ const Game: React.FC = () => {
         }
       };
 
-      const handleKeyPress = (event: KeyboardEvent) => {
-        if (event.key === "ArrowLeft") changeLane(-1);
-        if (event.key === "ArrowRight") changeLane(1);
-        if (event.key === " ") {
-          if (gameOver) {
-            // Restart game
-            resetGame();
-          } else {
-            shoot();
-          }
-        }
-      };
-
       const resetGame = () => {
         spaceshipLaneIndex = 1;
         speedMultiplier = 1;
@@ -408,39 +392,34 @@ const Game: React.FC = () => {
         return false;
       };
 
-      // Attach event listener for keyboard controls
-      window.addEventListener("keydown", handleKeyPress);
-
       // Cleanup the event listener on component unmount
       return () => {
-        window.removeEventListener("keydown", handleKeyPress);
+        if (isClient) {
+          window.removeEventListener("keydown", handleKeyPress);
+        }
       };
     },
     [selectedShip]
   );
 
   useEffect(() => {
-    if (spaceshipRef.current && p5Ref.current) {
-      spaceshipRef.current = p5Ref.current.loadImage(selectedShip.src);
-    }
-  }, [selectedShip, p5Ref]);
+    if (typeof window !== 'undefined') {
+      const p5Instance = new p5(sketch, gameRef.current!);
 
-  useEffect(() => {
-    if (isGameStarted) {
-      new p5(sketch, gameRef.current!); // Initialize p5 with the sketch
+      return () => {
+        p5Instance.remove(); // Cleanup on unmount
+      };
     }
-  }, [isGameStarted, sketch]);
-
-  if (!isGameStarted) {
-    return <StartPage onStart={startGame} />;
-  }
+  }, [sketch]);
 
   return (
     <div
       ref={gameRef}
       className="w-full h-screen flex items-center justify-center"
-    ></div>
+    >
+    </div>
   );
 };
 
 export default Game;
+
