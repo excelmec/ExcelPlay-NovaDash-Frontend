@@ -2,9 +2,10 @@
 
 import dynamic from 'next/dynamic';
 
-// Dynamically import the Game component with SSR disabled
-const Game = dynamic(() => import("../app/components/Game"), { ssr: false });
+const StartPage = dynamic(() => import('@/components/StartPage'), {
+  ssr: false,
+});
 
 export default function HomePage() {
-  return <Game />;
+  return <StartPage />;
 }
