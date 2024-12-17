@@ -44,6 +44,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let enemySpaceshipImg: p5.Image;
       let explosionImg: p5.Image;
       let asteroidImg: p5.Image;
+      let powerUpImg: p5.Image; // Add this line
       let retroFont: p5.Font;
       let points = 0;
       let gameOver = false;
@@ -53,11 +54,17 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let lastSpeedIncreaseScore = 0;
       let touchStartX = 0;
 
+      // New state variables for power-ups
+      let powerUps: { x: number; y: number; type: string }[] = [];
+      let activePowerUp: string | null = null;
+      let powerUpDuration = 0;
+
       p.preload = () => {
         spaceshipRef.current = p.loadImage(selectedShip.src);
         enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
+        powerUpImg = p.loadImage("/powerup.png"); // Add this line
         retroFont = p.loadFont("/PressStart2P.ttf");
       };
 
@@ -74,6 +81,19 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             x: p.random(p.width),
             y: p.random(p.height),
             speed: p.random(1, 3),
+          });
+        }
+      };
+
+      // New function to create power-ups
+      const createPowerUp = () => {
+        if (p.random(1) < 0.05) { // 5% chance to spawn a power-up
+          const laneIndex = p.floor(p.random(0, lanes.length));
+          const powerUpType = p.random(['slow', 'multiplier', 'shield']);
+          powerUps.push({
+            x: lanes[laneIndex],
+            y: 0,
+            type: powerUpType,
           });
         }
       };
@@ -118,6 +138,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         drawStars();
         drawSpaceship();
         handleObstacles();
+        // New power-up handling
+        handlePowerUps();
         handleEnemySpaceships();
         handleBullets();
         handleExplosions();
@@ -188,15 +210,56 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             obstacle.x === lanes[spaceshipLaneIndex]
           ) {
             if (obstacle.type === "asteroid") {
-              createExplosion(obstacle.x, p.height - 50); // Create explosion at collision point
-              gameOver = true;
-              p.noLoop();
+              if (activePowerUp === 'shield') {
+                createExplosion(obstacle.x, obstacle.y);
+                obstacles.splice(index, 1);
+                deactivatePowerUp();
+              } else {
+                createExplosion(obstacle.x, p.height - 50); // Create explosion at collision point
+                gameOver = true;
+                p.noLoop();
+              }
             }
           }
         });
 
         // Remove obstacles that are out of view
         obstacles = obstacles.filter((obstacle) => obstacle.y < p.height);
+      };
+
+      // New function to handle power-ups
+      const handlePowerUps = () => {
+        // Generate power-ups
+        if (p.frameCount % 300 === 0) {
+          createPowerUp();
+        }
+
+        // Move and draw power-ups
+        powerUps.forEach((powerUp, index) => {
+          p.image(powerUpImg, powerUp.x, powerUp.y, 30, 30); // Updated line
+          powerUp.y += baseSpeed * speedMultiplier * 0.5;
+
+          // Collision detection with player
+          if (
+            powerUp.y > p.height - 70 &&
+            powerUp.y < p.height - 30 &&
+            powerUp.x === lanes[spaceshipLaneIndex]
+          ) {
+            activatePowerUp(powerUp.type);
+            powerUps.splice(index, 1);
+          }
+        });
+
+        // Remove power-ups that are out of view
+        powerUps = powerUps.filter((powerUp) => powerUp.y < p.height);
+
+        // Handle active power-up duration
+        if (activePowerUp) {
+          powerUpDuration--;
+          if (powerUpDuration <= 0) {
+            deactivatePowerUp();
+          }
+        }
       };
 
       const handleEnemySpaceships = () => {
@@ -327,11 +390,42 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         });
       };
 
+      // New functions to activate and deactivate power-ups
+      const activatePowerUp = (type: string) => {
+        activePowerUp = type;
+        powerUpDuration = 600; // 5 seconds (60 frames per second)
+        switch (type) {
+          case 'slow':
+            speedMultiplier *= 0.5;
+            break;
+          case 'multiplier':
+            // The score multiplier effect is handled in updateAndDrawHUD
+            break;
+          case 'shield':
+            // The shield effect is handled in collision detection
+            break;
+        }
+      };
+
+      const deactivatePowerUp = () => {
+        switch (activePowerUp) {
+          case 'slow':
+            speedMultiplier *= 2; // Revert the speed
+            break;
+          // No need to handle 'multiplier' and 'shield' here
+        }
+        activePowerUp = null;
+      };
+
       const updateAndDrawHUD = () => {
         p.fill(255);
         p.textSize(16);
-        p.text(`SCORE: ${Math.floor(points)}`, 10, 20);
+        const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
+        p.text(`SCORE: ${Math.floor(points * scoreMultiplier)}`, 10, 20);
         p.text(`LEVEL: ${level}`, 10, 40);
+        if (activePowerUp) {
+          p.text(`POWER-UP: ${activePowerUp.toUpperCase()}`, 10, 60);
+        }
       };
 
       const changeLane = (direction: number) => {
@@ -365,6 +459,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         level = 1;
         shootCooldown = 0;
         lastSpeedIncreaseScore = 0;
+        // Reset power-ups
+        powerUps = [];
+        activePowerUp = null;
+        powerUpDuration = 0;
         p.loop();
       };
 
