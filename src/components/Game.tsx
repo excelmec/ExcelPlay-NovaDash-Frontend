@@ -142,7 +142,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const drawSpaceship = () => {
         if (spaceshipRef.current) {
-          p.image(spaceshipRef.current, lanes[spaceshipLaneIndex], p.height - 50, 60, 60);
+          p.image(spaceshipRef.current, lanes[spaceshipLaneIndex], p.height - 50, 80, 100);
         }
       };
 
