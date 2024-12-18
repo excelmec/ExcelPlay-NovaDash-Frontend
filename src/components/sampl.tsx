@@ -1,7 +1,6 @@
 "use client";
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import p5 from "p5";
-import { Volume2, VolumeX } from 'lucide-react';
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -11,22 +10,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const gameRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<p5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
-  const [isSoundOn, setIsSoundOn] = useState(true);
-  const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
-
-  const toggleSound = useCallback(() => {
-    setIsSoundOn((prevIsSoundOn) => {
-      const newIsSoundOn = !prevIsSoundOn;
-      if (backgroundMusic) {
-        if (newIsSoundOn) {
-          backgroundMusic.play();
-        } else {
-          backgroundMusic.pause();
-        }
-      }
-      return newIsSoundOn;
-    });
-  }, [backgroundMusic]);
 
   const sketch = useCallback(
     (p: p5) => {
@@ -438,38 +421,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         
         // Draw sound icon
         p.textAlign(p.RIGHT, p.TOP);
-        p.noStroke();
-        p.fill(255);
-        const iconSize = 30;
-        const iconX = p.width - iconSize - 10;
-        const iconY = 10;
-        
-        if (isSoundOn) {
-          // Draw sound on icon
-          p.rect(iconX + 5, iconY + 10, 5, 10);
-          p.rect(iconX + 15, iconY + 5, 5, 20);
-          p.arc(iconX + 15, iconY + 15, 20, 20, -p.QUARTER_PI, p.QUARTER_PI);
-        } else {
-          // Draw sound off icon
-          p.rect(iconX + 5, iconY + 10, 5, 10);
-          p.rect(iconX + 15, iconY + 5, 5, 20);
-          p.line(iconX + 25, iconY + 5, iconX + 5, iconY + 25);
-        }
-      };
-
-      // Updated mousePressed function
-      p.mousePressed = () => {
-        const iconSize = 30;
-        const iconX = p.width - iconSize - 10;
-        const iconY = 10;
-        if (
-          p.mouseX > iconX &&
-          p.mouseX < iconX + iconSize &&
-          p.mouseY > iconY &&
-          p.mouseY < iconY + iconSize
-        ) {
-          toggleSound();
-        }
+        p.text('🔊', p.width - 10, 10);
       };
 
       const changeLane = (direction: number) => {
@@ -540,26 +492,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
     },
-    [selectedShip, isSoundOn, toggleSound] // Added toggleSound to dependencies
+    [selectedShip]
   );
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const audio = new Audio('/background-track.mp3');
-      audio.loop = true;
-      setBackgroundMusic(audio);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (backgroundMusic) {
-      if (isSoundOn) {
-        backgroundMusic.play();
-      } else {
-        backgroundMusic.pause();
-      }
-    }
-  }, [isSoundOn, backgroundMusic]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -574,15 +508,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   return (
     <div
       ref={gameRef}
-      className="w-full h-screen flex items-center justify-center relative"
+      className="w-full h-screen flex items-center justify-center"
     >
-      <button
-        className="absolute top-4 right-4 z-10"
-        onClick={toggleSound}
-        aria-label={isSoundOn ? "Mute sound" : "Unmute sound"}
-      >
-        {isSoundOn ? <Volume2 size={24} /> : <VolumeX size={24} />}
-      </button>
     </div>
   );
 };
