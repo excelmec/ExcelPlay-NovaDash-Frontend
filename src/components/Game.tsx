@@ -1,7 +1,6 @@
 "use client";
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import p5 from "p5";
-import { Volume2, VolumeX } from 'lucide-react';
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -11,23 +10,20 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const gameRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<p5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
-  const [isSoundOn, setIsSoundOn] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const [shootSound, setShootSound] = useState<HTMLAudioElement | null>(null);
   const [gameOverSound, setGameOverSound] = useState<HTMLAudioElement | null>(null);
+  const isSoundOnRef = useRef(true);
 
-  const toggleSound = useCallback(() => {
-    setIsSoundOn((prevIsSoundOn) => {
-      const newIsSoundOn = !prevIsSoundOn;
-      if (backgroundMusic) {
-        if (newIsSoundOn) {
-          backgroundMusic.play();
-        } else {
-          backgroundMusic.pause();
-        }
+  const toggleSoundWithoutRestart = useCallback(() => {
+    isSoundOnRef.current = !isSoundOnRef.current;
+    if (backgroundMusic) {
+      if (isSoundOnRef.current) {
+        backgroundMusic.play();
+      } else {
+        backgroundMusic.pause();
       }
-      return newIsSoundOn;
-    });
+    }
   }, [backgroundMusic]);
 
   const fadeOutBackgroundMusic = useCallback(() => {
@@ -55,7 +51,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         if (event.key === " ") {
           if (gameOver) {
             resetGame();
-            if (backgroundMusic && isSoundOn) {
+            if (backgroundMusic && isSoundOnRef.current) {
               backgroundMusic.currentTime = 0;
               backgroundMusic.volume = 1;
               backgroundMusic.play();
@@ -254,7 +250,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
                 createExplosion(obstacle.x, p.height - 50); // Create explosion at collision point
                 gameOver = true;
                 fadeOutBackgroundMusic();
-                if (gameOverSound && isSoundOn) {
+                if (gameOverSound && isSoundOnRef.current) {
                   gameOverSound.play();
                 }
                 p.noLoop();
@@ -344,7 +340,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             enemySpaceships.splice(index, 1);
             gameOver = true;
             fadeOutBackgroundMusic();
-            if (gameOverSound && isSoundOn) {
+            if (gameOverSound && isSoundOnRef.current) {
               gameOverSound.play();
             }
             p.noLoop();
@@ -393,7 +389,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               bullets.splice(index, 1);
               gameOver = true;
               fadeOutBackgroundMusic();
-              if (gameOverSound && isSoundOn) {
+              if (gameOverSound && isSoundOnRef.current) {
                 gameOverSound.play();
               }
               p.noLoop();
@@ -479,7 +475,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         const iconSize = 30;
         const iconX = p.width - iconSize - 10;
         const iconY = 10;
-        if (isSoundOn) {
+        if (isSoundOnRef.current) {
           // Draw sound on icon
           p.rect(iconX + 5, iconY + 10, 5, 10);
           p.rect(iconX + 15, iconY + 5, 5, 20);
@@ -503,8 +499,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           p.mouseY > iconY &&
           p.mouseY < iconY + iconSize
         ) {
-          toggleSound();
+          toggleSoundWithoutRestart();
+          return false; // Prevent default behavior
         }
+        return true; // Allow default behavior for other interactions
       };
 
       const changeLane = (direction: number) => {
@@ -523,7 +521,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             isEnemy: false,
           });
           shootCooldown = 15; // Set cooldown to prevent rapid firing
-          if (shootSound && isSoundOn) {
+          if (shootSound && isSoundOnRef.current) {
             shootSound.currentTime = 0; // Reset the audio to the beginning
             shootSound.play();
           }
@@ -546,7 +544,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         activePowerUp = null;
         powerUpDuration = 0;
         p.loop();
-        if (backgroundMusic && isSoundOn) {
+        if (backgroundMusic && isSoundOnRef.current) {
           backgroundMusic.currentTime = 0;
           backgroundMusic.volume = 1;
           backgroundMusic.play();
@@ -584,7 +582,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
     },
-    [selectedShip, isSoundOn, toggleSound, fadeOutBackgroundMusic, backgroundMusic] // Added fadeOutBackgroundMusic to dependencies
+    [selectedShip, isSoundOnRef, fadeOutBackgroundMusic, backgroundMusic]
   );
 
   useEffect(() => {
@@ -597,13 +595,13 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
   useEffect(() => {
     if (backgroundMusic) {
-      if (isSoundOn) {
+      if (isSoundOnRef.current) {
         backgroundMusic.play();
       } else {
         backgroundMusic.pause();
       }
     }
-  }, [isSoundOn, backgroundMusic]);
+  }, [isSoundOnRef, backgroundMusic]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -626,14 +624,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     <div
       ref={gameRef}
       className="w-full h-screen flex items-center justify-center relative"
-    >
-      <button
-        className="absolute top-4 right-4 z-10"
-        onClick={toggleSound}
-        aria-label={isSoundOn ? "Mute sound" : "Unmute sound"}
-      >
-        {isSoundOn ? <Volume2 size={24} /> : <VolumeX size={24} />}
-      </button>
+    > 
     </div>
   );
 };
