@@ -464,7 +464,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
         const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
         p.text(score, 10, 10);
-
         // Draw sound icon
         p.textAlign(p.RIGHT, p.TOP);
         p.noStroke();
@@ -472,7 +471,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         const iconSize = 30;
         const iconX = p.width - iconSize - 10;
         const iconY = 10;
-
         if (isSoundOn) {
           // Draw sound on icon
           p.rect(iconX + 5, iconY + 10, 5, 10);

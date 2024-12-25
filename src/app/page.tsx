@@ -1,10 +1,6 @@
 "use client";
 
-import dynamic from 'next/dynamic';
-
-const StartPage = dynamic(() => import('@/components/StartPage'), {
-  ssr: false,
-});
+import StartPage from "@/components/StartPage";
 
 export default function HomePage() {
   return <StartPage />;

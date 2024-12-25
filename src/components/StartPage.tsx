@@ -6,7 +6,12 @@ import Stars from "@/assets/images/stars.png";
 
 import Navbar from "./SpecialNavbar";
 import ShipSelector from "./ShipSelector";
-import Game from "./Game";
+
+import dynamic from "next/dynamic";
+
+const Game = dynamic(() => import('./Game'), {
+  ssr: false
+})
 
 import { ShipDetails } from "@/constants";
 

@@ -18,6 +18,8 @@
     "cannon-es": "^0.20.0",
     "framer-motion": "^11.13.1",
     "gsap": "^3.12.5",
+    "howler": "^2.2.4",
+    "lucide-react": "^0.468.0",
     "next": "15.0.2",
     "p5": "^1.11.1",
     "react": "^18.2.0",
@@ -29,6 +31,7 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@types/howler": "^2.2.12",
     "@types/node": "^20",
     "@types/p5": "^1.7.6",
     "@types/react": "^18",
