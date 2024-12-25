@@ -30,6 +30,20 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     });
   }, [backgroundMusic]);
 
+  const fadeOutBackgroundMusic = useCallback(() => {
+    if (backgroundMusic) {
+      const fadeInterval = setInterval(() => {
+        if (backgroundMusic.volume > 0.1) {
+          backgroundMusic.volume -= 0.1;
+        } else {
+          backgroundMusic.pause();
+          backgroundMusic.volume = 1;
+          clearInterval(fadeInterval);
+        }
+      }, 100);
+    }
+  }, [backgroundMusic]);
+
   const sketch = useCallback(
     (p: p5) => {
       p5Ref.current = p;
@@ -81,10 +95,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         spaceshipRef.current = p.loadImage(selectedShip.src);
         enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
-        asteroidImg = p.loadImage("asteroid.png");
+        asteroidImg = p.loadImage("/asteroid.png");
         powerUpImg = p.loadImage("/powerup.png"); // Add this line
-        retroFont = p.loadFont("/PressStart2P.ttf");
+        retroFont = p.loadFont("/Pixeboy.ttf");
       };
+
 
       p.setup = () => {
         p.createCanvas(500, p.windowHeight);
@@ -230,6 +245,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               } else {
                 createExplosion(obstacle.x, p.height - 50); // Create explosion at collision point
                 gameOver = true;
+                fadeOutBackgroundMusic();
                 if (gameOverSound && isSoundOn) {
                   gameOverSound.play();
                 }
@@ -319,6 +335,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             createExplosion(enemy.x, enemy.y);
             enemySpaceships.splice(index, 1);
             gameOver = true;
+            fadeOutBackgroundMusic();
             if (gameOverSound && isSoundOn) {
               gameOverSound.play();
             }
@@ -367,6 +384,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               createExplosion(bullet.x, p.height - 50);
               bullets.splice(index, 1);
               gameOver = true;
+              fadeOutBackgroundMusic();
               if (gameOverSound && isSoundOn) {
                 gameOverSound.play();
               }
@@ -446,7 +464,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
         const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
         p.text(score, 10, 10);
-        
+
         // Draw sound icon
         p.textAlign(p.RIGHT, p.TOP);
         p.noStroke();
@@ -454,7 +472,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         const iconSize = 30;
         const iconX = p.width - iconSize - 10;
         const iconY = 10;
-        
+
         if (isSoundOn) {
           // Draw sound on icon
           p.rect(iconX + 5, iconY + 10, 5, 10);
@@ -555,7 +573,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
     },
-    [selectedShip, isSoundOn, toggleSound] // Added toggleSound to dependencies
+    [selectedShip, isSoundOn, toggleSound, fadeOutBackgroundMusic] // Added fadeOutBackgroundMusic to dependencies
   );
 
   useEffect(() => {
