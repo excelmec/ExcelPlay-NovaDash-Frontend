@@ -53,8 +53,16 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         if (event.key === "ArrowLeft") changeLane(-1);
         if (event.key === "ArrowRight") changeLane(1);
         if (event.key === " ") {
-          if (gameOver) resetGame();
-          else shoot();
+          if (gameOver) {
+            resetGame();
+            if (backgroundMusic && isSoundOn) {
+              backgroundMusic.currentTime = 0;
+              backgroundMusic.volume = 1;
+              backgroundMusic.play();
+            }
+          } else {
+            shoot();
+          }
         }
       };
 
@@ -538,6 +546,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         activePowerUp = null;
         powerUpDuration = 0;
         p.loop();
+        if (backgroundMusic && isSoundOn) {
+          backgroundMusic.currentTime = 0;
+          backgroundMusic.volume = 1;
+          backgroundMusic.play();
+        }
       };
 
       // Touch events for mobile swipe gestures
@@ -571,7 +584,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
     },
-    [selectedShip, isSoundOn, toggleSound, fadeOutBackgroundMusic] // Added fadeOutBackgroundMusic to dependencies
+    [selectedShip, isSoundOn, toggleSound, fadeOutBackgroundMusic, backgroundMusic] // Added fadeOutBackgroundMusic to dependencies
   );
 
   useEffect(() => {
