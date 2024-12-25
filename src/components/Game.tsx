@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import p5 from "p5";
+import gsap from "gsap";
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -104,12 +105,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         retroFont = p.loadFont("/Pixeboy.ttf");
       };
 
-
       p.setup = () => {
         p.createCanvas(500, p.windowHeight);
         p.imageMode(p.CENTER);
         p.textFont(retroFont);
         createStars();
+        gsap.set(spaceshipRef.current, { x: lanes[spaceshipLaneIndex] });
       };
 
       const createStars = () => {
@@ -196,7 +197,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const drawSpaceship = () => {
         if (spaceshipRef.current) {
-          p.image(spaceshipRef.current, lanes[spaceshipLaneIndex], p.height - 50, 80, 100);
+          const x = gsap.getProperty(spaceshipRef.current, "x") as number || lanes[spaceshipLaneIndex];
+          p.image(spaceshipRef.current, x, p.height - 50, 80, 100);
         }
       };
 
@@ -506,11 +508,21 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const changeLane = (direction: number) => {
-        spaceshipLaneIndex = p.constrain(
+        const newLaneIndex = p.constrain(
           spaceshipLaneIndex + direction,
           0,
           lanes.length - 1
         );
+        if (newLaneIndex !== spaceshipLaneIndex) {
+          const currentX = lanes[spaceshipLaneIndex];
+          const targetX = lanes[newLaneIndex];
+          gsap.to(spaceshipRef.current, {
+            x: targetX,
+            duration: 0.3,
+            ease: "power2.out",
+          });
+          spaceshipLaneIndex = newLaneIndex;
+        }
       };
 
       const shoot = () => {
