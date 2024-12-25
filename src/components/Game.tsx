@@ -463,6 +463,19 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         activePowerUp = null;
       };
 
+      const getPowerUpDisplayText = (powerUp: string | null): string => {
+        switch (powerUp) {
+          case 'slow':
+            return 'SLOW TIME';
+          case 'multiplier':
+            return '2X SCORE';
+          case 'shield':
+            return 'SHIELD';
+          default:
+            return '';
+        }
+      };
+
       const updateAndDrawHUD = () => {
         p.fill(255);
         p.textSize(24);
@@ -470,6 +483,15 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
         const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
         p.text(score, 10, 10);
+
+        // Display active power-up
+        if (activePowerUp) {
+          p.textAlign(p.CENTER, p.TOP);
+          p.textSize(18);
+          p.fill(255, 255, 0); // Yellow color for power-up text
+          p.text(getPowerUpDisplayText(activePowerUp), p.width / 2, 10);
+        }
+
         // Draw sound icon
         p.textAlign(p.RIGHT, p.TOP);
         p.noStroke();
