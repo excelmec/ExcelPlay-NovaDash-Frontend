@@ -1,31 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 
 import TITLE from "@/assets/images/title.png";
 import Stars from "@/assets/images/stars.png";
 
 import Navbar from "./SpecialNavbar";
 import ShipSelector from "./ShipSelector";
-
-import dynamic from "next/dynamic";
-
-const Game = dynamic(() => import('./Game'), {
-  ssr: false
-})
+import RetroTerminalPreloader from "./SampleTestRetroTerminalPreloader";
 
 import { ShipDetails } from "@/constants";
+
+const Game = dynamic(() => import('./Game'), {
+  ssr: false,
+  loading: () => <RetroTerminalPreloader />
+})
 
 const StartPage = () => {
   const [selectedShip, setSelectedShip] = useState(ShipDetails[0]);
   const [isGameStarted, setIsGameStarted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleShipSelect = (ship: { src: string; alt: string; name: string }) => {
     setSelectedShip(ship);
   };
 
   const startGame = () => {
-    setIsGameStarted(true);
+    setIsLoading(true);
+    // Simulate loading time
+    setTimeout(() => {
+      setIsGameStarted(true);
+      setIsLoading(false);
+    }, 6000); // 5 seconds loading time, adjust as needed
   };
+
+  if (isLoading) {
+    return <RetroTerminalPreloader />;
+  }
 
   if (isGameStarted) {
     return <Game selectedShip={selectedShip} />;
@@ -95,3 +106,4 @@ const StartPage = () => {
 };
 
 export default StartPage;
+
