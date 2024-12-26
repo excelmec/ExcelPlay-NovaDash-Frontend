@@ -15,6 +15,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const [shootSound, setShootSound] = useState<HTMLAudioElement | null>(null);
   const [gameOverSound, setGameOverSound] = useState<HTMLAudioElement | null>(null);
   const isSoundOnRef = useRef(true);
+  const [score, setScore] = useState("0000000000"); // Added score state
 
   const toggleSoundWithoutRestart = useCallback(() => {
     isSoundOnRef.current = !isSoundOnRef.current;
@@ -476,40 +477,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
 
-      const updateAndDrawHUD = () => {
-        p.fill(255);
-        p.textSize(24);
-        p.textAlign(p.LEFT, p.TOP);
+      const updateAndDrawHUD = () => { // Updated updateAndDrawHUD function
         const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
-        const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
-        p.text(score, 10, 10);
-
-        // Display active power-up
-        if (activePowerUp) {
-          p.textAlign(p.CENTER, p.TOP);
-          p.textSize(18);
-          p.fill(255, 255, 0); // Yellow color for power-up text
-          p.text(getPowerUpDisplayText(activePowerUp), p.width / 2, 10);
-        }
-
-        // Draw sound icon
-        p.textAlign(p.RIGHT, p.TOP);
-        p.noStroke();
-        p.fill(255);
-        const iconSize = 30;
-        const iconX = p.width - iconSize - 10;
-        const iconY = 10;
-        if (isSoundOnRef.current) {
-          // Draw sound on icon
-          p.rect(iconX + 5, iconY + 10, 5, 10);
-          p.rect(iconX + 15, iconY + 5, 5, 20);
-          p.arc(iconX + 15, iconY + 15, 20, 20, -p.QUARTER_PI, p.QUARTER_PI);
-        } else {
-          // Draw sound off icon
-          p.rect(iconX + 5, iconY + 10, 5, 10);
-          p.rect(iconX + 15, iconY + 5, 5, 20);
-          p.line(iconX + 25, iconY + 5, iconX + 5, iconY + 25);
-        }
+        const newScore = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
+        setScore(newScore);
+        return newScore;
       };
 
       // Updated mousePressed function
@@ -655,10 +627,56 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   }, [sketch]);
 
   return (
-    <div
-      ref={gameRef}
-      className="w-full h-screen flex items-center justify-center relative"
-    > 
+    <div className="w-full h-screen flex items-center justify-center relative">
+      <div ref={gameRef} className="relative">
+        <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4">
+          <div className="backdrop-blur-md bg-black/30 px-4 py-2 rounded-lg border border-white/10">
+            <p className="font-mono text-2xl text-white">{score}</p> {/* Updated to use score state */}
+          </div>
+          <button
+            onClick={toggleSoundWithoutRestart}
+            className="backdrop-blur-md bg-black/30 p-2 rounded-lg border border-white/10"
+          >
+            {isSoundOnRef.current ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M12 18.012l-4.293-4.293A1 1 0 016.293 13H4a1 1 0 01-1-1v-4a1 1 0 011-1h2.293a1 1 0 01.707.293L12 11.988v6.024z"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
