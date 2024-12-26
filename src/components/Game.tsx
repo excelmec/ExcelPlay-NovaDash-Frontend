@@ -513,57 +513,52 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     
         // Draw sound icon (we'll update this in the next step)
         drawSoundIcon();
-    };
+      };
     
     
       const drawSoundIcon = () => {
         p.push();
-        p.textAlign(p.RIGHT, p.TOP);
-        const iconSize = 40; // Icon size
+        const iconSize = 40;
         const iconX = p.width - iconSize - 20;
-        const iconY = 20; // Top-right position
-        const speakerWidth = 10;
-        const speakerHeight = 15;
-      
-        // Draw button background
+        const iconY = 20;
+        const centerX = iconX + iconSize / 2;
+        const centerY = iconY + iconSize / 2;
+
+        // Draw button background with a gradient
         p.noStroke();
-        p.fill(255, 255, 255, 100);
-        p.rect(iconX, iconY, iconSize, iconSize, 5);
-      
+        const gradient = p.drawingContext.createRadialGradient(
+          centerX, centerY, 0,
+          centerX, centerY, iconSize / 2
+        );
+        gradient.addColorStop(0, p.color(60, 60, 60, 200));
+        gradient.addColorStop(1, p.color(30, 30, 30, 200));
+        p.drawingContext.fillStyle = gradient;
+        p.circle(centerX, centerY, iconSize);
+
         // Draw icon
+        p.stroke(255);
+        p.strokeWeight(2);
+        p.noFill();
+        
+        // Speaker
+        p.beginShape();
+        p.vertex(centerX - 8, centerY - 5);
+        p.vertex(centerX - 3, centerY - 5);
+        p.vertex(centerX + 3, centerY - 10);
+        p.vertex(centerX + 3, centerY + 10);
+        p.vertex(centerX - 3, centerY + 5);
+        p.vertex(centerX - 8, centerY + 5);
+        p.endShape(p.CLOSE);
+
         if (isSoundOnRef.current) {
-          // Sound ON icon
-          p.fill(0); // Dark fill for the speaker
-          p.beginShape();
-          p.vertex(iconX + 10, iconY + 15); // Bottom-left of speaker
-          p.vertex(iconX + 20, iconY + 10); // Top-right of speaker
-          p.vertex(iconX + 20, iconY + 30); // Bottom-right of speaker
-          p.vertex(iconX + 10, iconY + 25); // Bottom-left of speaker
-          p.endShape(p.CLOSE);
-      
-          // Draw sound waves
-          p.noFill();
-          p.stroke(0);
-          p.strokeWeight(2);
-          p.arc(iconX + 25, iconY + 20, 10, 10, -p.HALF_PI, p.HALF_PI);
-          p.arc(iconX + 30, iconY + 20, 15, 15, -p.HALF_PI, p.HALF_PI);
-          p.arc(iconX + 35, iconY + 20, 20, 20, -p.HALF_PI, p.HALF_PI);
+          // Sound waves
+          p.arc(centerX + 6, centerY, 10, 15, -p.QUARTER_PI, p.QUARTER_PI);
+          p.arc(centerX + 8, centerY, 15, 20, -p.QUARTER_PI, p.QUARTER_PI);
         } else {
-          // Sound OFF icon
-          p.fill(0); // Dark fill for the speaker
-          p.beginShape();
-          p.vertex(iconX + 10, iconY + 15); // Bottom-left of speaker
-          p.vertex(iconX + 20, iconY + 10); // Top-right of speaker
-          p.vertex(iconX + 20, iconY + 30); // Bottom-right of speaker
-          p.vertex(iconX + 10, iconY + 25); // Bottom-left of speaker
-          p.endShape(p.CLOSE);
-      
-          // Draw a line across to represent "off"
-          p.stroke(255, 0, 0);
-          p.strokeWeight(2);
-          p.line(iconX + 20, iconY + 10, iconX + 30, iconY + 30);
+          // Cross line for mute
+          p.line(centerX - 10, centerY - 10, centerX + 10, centerY + 10);
         }
-      
+
         p.pop();
       };
       
