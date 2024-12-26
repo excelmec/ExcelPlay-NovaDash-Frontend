@@ -3,6 +3,10 @@ import React, { useRef, useEffect, useCallback, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
 
+import Image from "next/image";
+import SoundOn from '@/assets/icons/sound_on.svg'
+import SoundOff from '@/assets/icons/sound_off.svg'
+
 interface GameProps {
   selectedShip: { src: string; alt: string };
 }
@@ -11,10 +15,14 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const gameRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<p5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
-  const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
+  const [backgroundMusic, setBackgroundMusic] =
+    useState<HTMLAudioElement | null>(null);
   const [shootSound, setShootSound] = useState<HTMLAudioElement | null>(null);
-  const [gameOverSound, setGameOverSound] = useState<HTMLAudioElement | null>(null);
+  const [gameOverSound, setGameOverSound] = useState<HTMLAudioElement | null>(
+    null
+  );
   const isSoundOnRef = useRef(true);
+  const [score, setScore] = useState("0000000000"); // Added score state
 
   const toggleSoundWithoutRestart = useCallback(() => {
     isSoundOnRef.current = !isSoundOnRef.current;
@@ -69,15 +77,16 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       let spaceshipLaneIndex = 1; // Start in the center lane
       const lanes = [100, 200, 300, 400]; // X positions for 3 lanes
-      const baseSpeed = 3; // Increased initial speed of obstacles and enemies
+      const baseSpeed = 2; // Initial speed of obstacles and enemies
       let speedMultiplier = 1; // Speed multiplier for increasing difficulty
       const MAX_BULLET_SPEED = 20; // Maximum speed for bullets
-      const BASE_ENEMY_SHOOT_INTERVAL = 100; // Decreased base interval for enemy shooting (in frames)
+      const BASE_ENEMY_SHOOT_INTERVAL = 120; // Base interval for enemy shooting (in frames)
       const MIN_ENEMY_SHOOT_INTERVAL = 60; // Minimum interval for enemy shooting (in frames)
       let obstacles: { x: number; y: number; type: string }[] = [];
       let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
       let enemySpaceships: { x: number; y: number; lane: number }[] = [];
-      let explosions: { x: number; y: number; frame: number; size: number }[] = [];
+      let explosions: { x: number; y: number; frame: number; size: number }[] =
+        [];
       spaceshipRef.current = null;
       let enemySpaceshipImg: p5.Image;
       let explosionImg: p5.Image;
@@ -101,7 +110,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
-        powerUpImg = p.loadImage("/powerup.gif"); // Add this line
+        powerUpImg = p.loadImage("/powerup.png"); // Add this line
         retroFont = p.loadFont("/Pixeboy.ttf");
       };
 
@@ -125,9 +134,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       // New function to create power-ups
       const createPowerUp = () => {
-        if (p.random(1) < 0.05) { // 5% chance to spawn a power-up
+        if (p.random(1) < 0.05) {
+          // 5% chance to spawn a power-up
           const laneIndex = p.floor(p.random(0, lanes.length));
-          const powerUpType = p.random(['slow', 'multiplier', 'shield']);
+          const powerUpType = p.random(["slow", "multiplier", "shield"]);
           powerUps.push({
             x: lanes[laneIndex],
             y: 0,
@@ -185,7 +195,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         updateAndDrawHUD();
 
         // Gradually increase score over time
-        points += 0.02 * speedMultiplier; // Doubled the score multiplier
+        points += 0.01 * speedMultiplier;
 
         // Check and update game speed based on score
         checkAndUpdateGameSpeed();
@@ -197,7 +207,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const drawSpaceship = () => {
         if (spaceshipRef.current) {
-          const x = gsap.getProperty(spaceshipRef.current, "x") as number || lanes[spaceshipLaneIndex];
+          const x =
+            (gsap.getProperty(spaceshipRef.current, "x") as number) ||
+            lanes[spaceshipLaneIndex];
           p.image(spaceshipRef.current, x, p.height - 50, 80, 100);
         }
       };
@@ -244,7 +256,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             obstacle.x === lanes[spaceshipLaneIndex]
           ) {
             if (obstacle.type === "asteroid") {
-              if (activePowerUp === 'shield') {
+              if (activePowerUp === "shield") {
                 createExplosion(obstacle.x, obstacle.y);
                 obstacles.splice(index, 1);
                 deactivatePowerUp();
@@ -357,7 +369,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         bullets.forEach((bullet, index) => {
           p.fill(bullet.isEnemy ? 255 : 0, bullet.isEnemy ? 0 : 255, 0);
           p.rect(bullet.x - 2, bullet.y, 4, 10);
-          const bulletSpeed = Math.min((bullet.isEnemy ? 5 : -10) * Math.sqrt(speedMultiplier), MAX_BULLET_SPEED);
+          const bulletSpeed = Math.min(
+            (bullet.isEnemy ? 5 : -10) * Math.sqrt(speedMultiplier),
+            MAX_BULLET_SPEED
+          );
           bullet.y += bulletSpeed;
 
           if (!bullet.isEnemy) {
@@ -367,7 +382,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
                 createExplosion(enemy.x, enemy.y);
                 enemySpaceships.splice(enemyIndex, 1);
                 bullets.splice(index, 1);
-                points += 40; // Doubled the score gained from destroying an enemy spaceship
+                points += 20; // Increase score only when destroying an enemy spaceship
               }
             });
 
@@ -441,13 +456,13 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         activePowerUp = type;
         powerUpDuration = 600; // 5 seconds (60 frames per second)
         switch (type) {
-          case 'slow':
+          case "slow":
             speedMultiplier *= 0.5;
             break;
-          case 'multiplier':
+          case "multiplier":
             // The score multiplier effect is handled in updateAndDrawHUD
             break;
-          case 'shield':
+          case "shield":
             // The shield effect is handled in collision detection
             break;
         }
@@ -455,7 +470,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const deactivatePowerUp = () => {
         switch (activePowerUp) {
-          case 'slow':
+          case "slow":
             speedMultiplier *= 2; // Revert the speed
             break;
           // No need to handle 'multiplier' and 'shield' here
@@ -465,124 +480,32 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const getPowerUpDisplayText = (powerUp: string | null): string => {
         switch (powerUp) {
-          case 'slow':
-            return 'SLOW TIME';
-          case 'multiplier':
-            return '2X SCORE';
-          case 'shield':
-            return 'SHIELD';
+          case "slow":
+            return "SLOW TIME";
+          case "multiplier":
+            return "2X SCORE";
+          case "shield":
+            return "SHIELD";
           default:
-            return '';
+            return "";
         }
       };
 
       const updateAndDrawHUD = () => {
-        const hudHeight = 80; // Height of the HUD
-    
-        // Glassmorphism effect for HUD
-        p.push();
-        p.noStroke(); // No stroke for the main HUD background
-    
-        // Semi-transparent white background with reduced opacity
-        p.fill(255, 255, 255, 19); // RGBA equivalent of bg-white/[0.075]
-        p.drawingContext.filter = 'blur(12px)'; // Backdrop blur effect
-        p.rect(0, 0, p.width, hudHeight); // Draw the main HUD background
-    
-        // Remove filter to ensure no blur applied to subsequent elements
-        p.drawingContext.filter = 'none';
-    
-        // Inset box shadow effect
-        p.fill(255, 255, 255, 23); // Slightly stronger white for shadow
-        p.beginShape();
-        p.vertex(0, hudHeight);
-        p.vertex(p.width, hudHeight);
-        p.vertex(p.width, hudHeight );
-        p.vertex(0, hudHeight );
-        p.endShape(p.CLOSE);
-    
-        p.pop();
-    
-        // Add slight outline at the bottom of the HUD
-        p.push();
-        p.stroke(255, 255, 255, 23); // Semi-transparent white outline
-        p.strokeWeight(1); // Thin stroke
-        p.line(0, hudHeight, p.width, hudHeight); // Horizontal line at the bottom
-        p.pop();
-    
-        // Display the score
-        p.fill(255);
-        p.textSize(28); // Text size
-        p.textAlign(p.LEFT, p.CENTER); // Align text to left and vertically center
-        const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
-        const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
-        p.text(score, 20, hudHeight / 2); // Place score at the middle of the HUD
-    
-        // Display active power-up
-        if (activePowerUp) {
-            p.textAlign(p.CENTER, p.CENTER); // Center align power-up text
-            p.textSize(22);
-            p.fill(255, 255, 0); // Yellow color for power-up text
-            p.text(getPowerUpDisplayText(activePowerUp), p.width / 2, hudHeight / 2);
-        }
-    
-        // Draw sound icon
-        drawSoundIcon();
-    };
-    
-    
-    
-      const drawSoundIcon = () => {
-        p.push();
-        const iconSize = 40;
-        const iconX = p.width - iconSize - 20;
-        const iconY = 20;
-        const centerX = iconX + iconSize / 2;
-        const centerY = iconY + iconSize / 2;
-
-        // Draw button background with a gradient
-        p.noStroke();
-        const gradient = p.drawingContext.createRadialGradient(
-          centerX, centerY, 0,
-          centerX, centerY, iconSize / 2
-        );
-        gradient.addColorStop(0, p.color(60, 60, 60, 200));
-        gradient.addColorStop(1, p.color(30, 30, 30, 200));
-        p.drawingContext.fillStyle = gradient;
-        p.circle(centerX, centerY, iconSize);
-
-        // Draw icon
-        p.stroke(255);
-        p.strokeWeight(2);
-        p.noFill();
-        
-        // Speaker
-        p.beginShape();
-        p.vertex(centerX - 8, centerY - 5);
-        p.vertex(centerX - 3, centerY - 5);
-        p.vertex(centerX + 3, centerY - 10);
-        p.vertex(centerX + 3, centerY + 10);
-        p.vertex(centerX - 3, centerY + 5);
-        p.vertex(centerX - 8, centerY + 5);
-        p.endShape(p.CLOSE);
-
-        if (isSoundOnRef.current) {
-          // Sound waves
-          p.arc(centerX + 6, centerY, 10, 15, -p.QUARTER_PI, p.QUARTER_PI);
-          p.arc(centerX + 8, centerY, 15, 20, -p.QUARTER_PI, p.QUARTER_PI);
-        } else {
-          // Cross line for mute
-          p.line(centerX - 10, centerY - 10, centerX + 10, centerY + 10);
-        }
-
-        p.pop();
+        // Updated updateAndDrawHUD function
+        const scoreMultiplier = activePowerUp === "multiplier" ? 2 : 1;
+        const newScore = Math.floor(points * scoreMultiplier)
+          .toString()
+          .padStart(10, "0");
+        setScore(newScore);
+        return newScore;
       };
-      
 
-
+      // Updated mousePressed function
       p.mousePressed = () => {
-        const iconSize = 40;
-        const iconX = p.width - iconSize - 20;
-        const iconY = 20;
+        const iconSize = 30;
+        const iconX = p.width - iconSize - 10;
+        const iconY = 10;
         if (
           p.mouseX > iconX &&
           p.mouseX < iconX + iconSize &&
@@ -686,8 +609,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   );
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const audio = new Audio('/background-track.mp3');
+    if (typeof window !== "undefined") {
+      const audio = new Audio("/background-track.mp3");
       audio.loop = true;
       setBackgroundMusic(audio);
     }
@@ -704,14 +627,14 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   }, [isSoundOnRef, backgroundMusic]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setShootSound(new Audio('/shoot.mp3'));
-      setGameOverSound(new Audio('/game-over.mp3'));
+    if (typeof window !== "undefined") {
+      setShootSound(new Audio("/shoot.mp3"));
+      setGameOverSound(new Audio("/game-over.mp3"));
     }
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const p5Instance = new p5(sketch, gameRef.current!);
 
       return () => {
@@ -721,13 +644,29 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   }, [sketch]);
 
   return (
-    <div
-      ref={gameRef}
-      className="w-full h-screen flex items-center justify-center relative"
-    > 
+    <div className="w-full h-screen flex items-center justify-center relative">
+      <div ref={gameRef} className="relative max-w-[500px] h-full w-full">
+        {/* HUD Bar */}
+        <div className="w-full navBorder max-h-[82px] h-full absolute z-10 top-0">
+          <div className="flex items-center justify-between px-[21px] py-2 backdrop-blur-[12px] w-full max-h-[96px] h-full navStyle ">
+            {/* Score Display */}
+            <div className="font-pixeboy text-[36px] text-white pt-[6px]">{score}</div>
+            {/* Sound Toggle */}
+            <button
+              onClick={toggleSoundWithoutRestart}
+              className="p-2 rounded-lg "
+            >
+              {isSoundOnRef.current ? (
+                <Image src={SoundOn} alt="On" />
+              ) : (
+                <Image src={SoundOff} alt="Off" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Game;
-
