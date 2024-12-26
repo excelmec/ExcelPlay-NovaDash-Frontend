@@ -498,22 +498,23 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     
         p.fill(255);
         p.textSize(28); // Slightly larger text
-        p.textAlign(p.LEFT, p.TOP);
+        p.textAlign(p.LEFT, p.CENTER); // Align text to left and vertically center
         const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
         const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
-        p.text(score, 20, 25); // Adjusted position
+        p.text(score, 20, hudHeight / 2); // Place score at the middle of the HUD
     
         // Display active power-up
         if (activePowerUp) {
-            p.textAlign(p.CENTER, p.TOP);
+            p.textAlign(p.CENTER, p.CENTER); // Center align power-up text
             p.textSize(22);
             p.fill(255, 255, 0); // Yellow color for power-up text
-            p.text(getPowerUpDisplayText(activePowerUp), p.width / 2, 25);
+            p.text(getPowerUpDisplayText(activePowerUp), p.width / 2, hudHeight / 2);
         }
     
         // Draw sound icon (we'll update this in the next step)
         drawSoundIcon();
     };
+    
     
       const drawSoundIcon = () => {
         p.push();
