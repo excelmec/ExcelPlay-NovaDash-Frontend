@@ -628,56 +628,60 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
   return (
     <div className="w-full h-screen flex items-center justify-center relative">
-      <div ref={gameRef} className="relative">
-        <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4">
-          <div className="backdrop-blur-md bg-black/30 px-4 py-2 rounded-lg border border-white/10">
-            <p className="font-mono text-2xl text-white">{score}</p> {/* Updated to use score state */}
-          </div>
-          <button
-            onClick={toggleSoundWithoutRestart}
-            className="backdrop-blur-md bg-black/30 p-2 rounded-lg border border-white/10"
-          >
-            {isSoundOnRef.current ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M12 18.012l-4.293-4.293A1 1 0 016.293 13H4a1 1 0 01-1-1v-4a1 1 0 011-1h2.293a1 1 0 01.707.293L12 11.988v6.024z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
+  <div ref={gameRef} className="relative w-full h-full">
+    {/* HUD Bar */}
+    <div className="absolute top-0 left-0 w-full backdrop-blur-md bg-black/30 py-2 px-4 border-b border-white/10 flex items-center justify-between">
+      {/* Score Display */}
+      <div className="font-mono text-2xl text-white">
+        {score}
       </div>
+      {/* Sound Toggle */}
+      <button
+        onClick={toggleSoundWithoutRestart}
+        className="p-2 rounded-lg border border-white/10"
+      >
+        {isSoundOnRef.current ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M12 18.012l-4.293-4.293A1 1 0 016.293 13H4a1 1 0 01-1-1v-4a1 1 0 011-1h2.293a1 1 0 01.707.293L12 11.988v6.024z"
+            />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+            />
+          </svg>
+        )}
+      </button>
     </div>
+  </div>
+</div>
+
   );
 };
 
