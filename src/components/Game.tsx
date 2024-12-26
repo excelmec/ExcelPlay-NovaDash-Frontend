@@ -528,9 +528,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         // Draw sound icon
         drawSoundIcon();
     };
-    
-    
-    
+ 
       const drawSoundIcon = () => {
         p.push();
         const iconSize = 40;
