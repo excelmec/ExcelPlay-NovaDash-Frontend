@@ -7,13 +7,12 @@ import Stars from "@/assets/images/stars.png";
 
 import Navbar from "./SpecialNavbar";
 import ShipSelector from "./ShipSelector";
-import RetroTerminalPreloader from "./SampleTestRetroTerminalPreloader";
 
 import { ShipDetails } from "@/constants";
 
 const Game = dynamic(() => import('./Game'), {
   ssr: false,
-  loading: () => <RetroTerminalPreloader />
+  
 })
 
 const StartPage = () => {
@@ -34,9 +33,7 @@ const StartPage = () => {
     }, 6000); // 5 seconds loading time, adjust as needed
   };
 
-  if (isLoading) {
-    return <RetroTerminalPreloader />;
-  }
+  
 
   if (isGameStarted) {
     return <Game selectedShip={selectedShip} />;

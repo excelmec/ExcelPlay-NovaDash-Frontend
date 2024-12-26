@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import p5 from "p5";
-import { Volume2, VolumeX } from 'lucide-react';
+import gsap from "gsap";
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -11,23 +11,21 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const gameRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<p5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
-  const [isSoundOn, setIsSoundOn] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState<HTMLAudioElement | null>(null);
   const [shootSound, setShootSound] = useState<HTMLAudioElement | null>(null);
   const [gameOverSound, setGameOverSound] = useState<HTMLAudioElement | null>(null);
+  const isSoundOnRef = useRef(true);
+  const [score, setScore] = useState("0000000000"); // Added score state
 
-  const toggleSound = useCallback(() => {
-    setIsSoundOn((prevIsSoundOn) => {
-      const newIsSoundOn = !prevIsSoundOn;
-      if (backgroundMusic) {
-        if (newIsSoundOn) {
-          backgroundMusic.play();
-        } else {
-          backgroundMusic.pause();
-        }
+  const toggleSoundWithoutRestart = useCallback(() => {
+    isSoundOnRef.current = !isSoundOnRef.current;
+    if (backgroundMusic) {
+      if (isSoundOnRef.current) {
+        backgroundMusic.play();
+      } else {
+        backgroundMusic.pause();
       }
-      return newIsSoundOn;
-    });
+    }
   }, [backgroundMusic]);
 
   const fadeOutBackgroundMusic = useCallback(() => {
@@ -53,8 +51,16 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         if (event.key === "ArrowLeft") changeLane(-1);
         if (event.key === "ArrowRight") changeLane(1);
         if (event.key === " ") {
-          if (gameOver) resetGame();
-          else shoot();
+          if (gameOver) {
+            resetGame();
+            if (backgroundMusic && isSoundOnRef.current) {
+              backgroundMusic.currentTime = 0;
+              backgroundMusic.volume = 1;
+              backgroundMusic.play();
+            }
+          } else {
+            shoot();
+          }
         }
       };
 
@@ -100,12 +106,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         retroFont = p.loadFont("/Pixeboy.ttf");
       };
 
-
       p.setup = () => {
         p.createCanvas(500, p.windowHeight);
         p.imageMode(p.CENTER);
         p.textFont(retroFont);
         createStars();
+        gsap.set(spaceshipRef.current, { x: lanes[spaceshipLaneIndex] });
       };
 
       const createStars = () => {
@@ -192,7 +198,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const drawSpaceship = () => {
         if (spaceshipRef.current) {
-          p.image(spaceshipRef.current, lanes[spaceshipLaneIndex], p.height - 50, 80, 100);
+          const x = gsap.getProperty(spaceshipRef.current, "x") as number || lanes[spaceshipLaneIndex];
+          p.image(spaceshipRef.current, x, p.height - 50, 80, 100);
         }
       };
 
@@ -246,7 +253,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
                 createExplosion(obstacle.x, p.height - 50); // Create explosion at collision point
                 gameOver = true;
                 fadeOutBackgroundMusic();
-                if (gameOverSound && isSoundOn) {
+                if (gameOverSound && isSoundOnRef.current) {
                   gameOverSound.play();
                 }
                 p.noLoop();
@@ -336,7 +343,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             enemySpaceships.splice(index, 1);
             gameOver = true;
             fadeOutBackgroundMusic();
-            if (gameOverSound && isSoundOn) {
+            if (gameOverSound && isSoundOnRef.current) {
               gameOverSound.play();
             }
             p.noLoop();
@@ -385,7 +392,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               bullets.splice(index, 1);
               gameOver = true;
               fadeOutBackgroundMusic();
-              if (gameOverSound && isSoundOn) {
+              if (gameOverSound && isSoundOnRef.current) {
                 gameOverSound.play();
               }
               p.noLoop();
@@ -457,31 +464,24 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         activePowerUp = null;
       };
 
-      const updateAndDrawHUD = () => {
-        p.fill(255);
-        p.textSize(24);
-        p.textAlign(p.LEFT, p.TOP);
-        const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
-        const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
-        p.text(score, 10, 10);
-        // Draw sound icon
-        p.textAlign(p.RIGHT, p.TOP);
-        p.noStroke();
-        p.fill(255);
-        const iconSize = 30;
-        const iconX = p.width - iconSize - 10;
-        const iconY = 10;
-        if (isSoundOn) {
-          // Draw sound on icon
-          p.rect(iconX + 5, iconY + 10, 5, 10);
-          p.rect(iconX + 15, iconY + 5, 5, 20);
-          p.arc(iconX + 15, iconY + 15, 20, 20, -p.QUARTER_PI, p.QUARTER_PI);
-        } else {
-          // Draw sound off icon
-          p.rect(iconX + 5, iconY + 10, 5, 10);
-          p.rect(iconX + 15, iconY + 5, 5, 20);
-          p.line(iconX + 25, iconY + 5, iconX + 5, iconY + 25);
+      const getPowerUpDisplayText = (powerUp: string | null): string => {
+        switch (powerUp) {
+          case 'slow':
+            return 'SLOW TIME';
+          case 'multiplier':
+            return '2X SCORE';
+          case 'shield':
+            return 'SHIELD';
+          default:
+            return '';
         }
+      };
+
+      const updateAndDrawHUD = () => { // Updated updateAndDrawHUD function
+        const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
+        const newScore = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
+        setScore(newScore);
+        return newScore;
       };
 
       // Updated mousePressed function
@@ -495,16 +495,28 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           p.mouseY > iconY &&
           p.mouseY < iconY + iconSize
         ) {
-          toggleSound();
+          toggleSoundWithoutRestart();
+          return false; // Prevent default behavior
         }
+        return true; // Allow default behavior for other interactions
       };
 
       const changeLane = (direction: number) => {
-        spaceshipLaneIndex = p.constrain(
+        const newLaneIndex = p.constrain(
           spaceshipLaneIndex + direction,
           0,
           lanes.length - 1
         );
+        if (newLaneIndex !== spaceshipLaneIndex) {
+          const currentX = lanes[spaceshipLaneIndex];
+          const targetX = lanes[newLaneIndex];
+          gsap.to(spaceshipRef.current, {
+            x: targetX,
+            duration: 0.3,
+            ease: "power2.out",
+          });
+          spaceshipLaneIndex = newLaneIndex;
+        }
       };
 
       const shoot = () => {
@@ -515,7 +527,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             isEnemy: false,
           });
           shootCooldown = 15; // Set cooldown to prevent rapid firing
-          if (shootSound && isSoundOn) {
+          if (shootSound && isSoundOnRef.current) {
             shootSound.currentTime = 0; // Reset the audio to the beginning
             shootSound.play();
           }
@@ -538,6 +550,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         activePowerUp = null;
         powerUpDuration = 0;
         p.loop();
+        if (backgroundMusic && isSoundOnRef.current) {
+          backgroundMusic.currentTime = 0;
+          backgroundMusic.volume = 1;
+          backgroundMusic.play();
+        }
       };
 
       // Touch events for mobile swipe gestures
@@ -571,7 +588,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
     },
-    [selectedShip, isSoundOn, toggleSound, fadeOutBackgroundMusic] // Added fadeOutBackgroundMusic to dependencies
+    [selectedShip, isSoundOnRef, fadeOutBackgroundMusic, backgroundMusic]
   );
 
   useEffect(() => {
@@ -584,13 +601,13 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
   useEffect(() => {
     if (backgroundMusic) {
-      if (isSoundOn) {
+      if (isSoundOnRef.current) {
         backgroundMusic.play();
       } else {
         backgroundMusic.pause();
       }
     }
-  }, [isSoundOn, backgroundMusic]);
+  }, [isSoundOnRef, backgroundMusic]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -610,18 +627,61 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   }, [sketch]);
 
   return (
-    <div
-      ref={gameRef}
-      className="w-full h-screen flex items-center justify-center relative"
-    >
+    <div className="w-full h-screen flex items-center justify-center relative">
+  <div ref={gameRef} className="relative w-full h-full">
+    {/* HUD Bar */}
+    <div className="absolute top-0 left-0 w-full backdrop-blur-md bg-black/30 py-2 px-4 border-b border-white/10 flex items-center justify-between">
+      {/* Score Display */}
+      <div className="font-mono text-2xl text-white">
+        {score}
+      </div>
+      {/* Sound Toggle */}
       <button
-        className="absolute top-4 right-4 z-10"
-        onClick={toggleSound}
-        aria-label={isSoundOn ? "Mute sound" : "Unmute sound"}
+        onClick={toggleSoundWithoutRestart}
+        className="p-2 rounded-lg border border-white/10"
       >
-        {isSoundOn ? <Volume2 size={24} /> : <VolumeX size={24} />}
+        {isSoundOnRef.current ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M12 18.012l-4.293-4.293A1 1 0 016.293 13H4a1 1 0 01-1-1v-4a1 1 0 011-1h2.293a1 1 0 01.707.293L12 11.988v6.024z"
+            />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+            />
+          </svg>
+        )}
       </button>
     </div>
+  </div>
+</div>
+
   );
 };
 
