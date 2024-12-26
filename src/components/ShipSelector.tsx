@@ -16,7 +16,10 @@ interface ShipSelectorProps {
   ships: Ship[]; // Array of ships
 }
 
-export default function ShipSelector({ onShipSelect, ships }: ShipSelectorProps) {
+export default function ShipSelector({
+  onShipSelect,
+  ships,
+}: ShipSelectorProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handlePrev = () => {

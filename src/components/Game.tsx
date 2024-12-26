@@ -4,8 +4,8 @@ import p5 from "p5";
 import gsap from "gsap";
 
 import Image from "next/image";
-import SoundOn from '@/assets/icons/sound_on.svg'
-import SoundOff from '@/assets/icons/sound_off.svg'
+import SoundOn from "@/assets/icons/sound_on.svg";
+import SoundOff from "@/assets/icons/sound_off.svg";
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -650,7 +650,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         <div className="w-full navBorder max-h-[82px] h-full absolute z-10 top-0">
           <div className="flex items-center justify-between px-[21px] py-2 backdrop-blur-[12px] w-full max-h-[96px] h-full navStyle ">
             {/* Score Display */}
-            <div className="font-pixeboy text-[36px] text-white pt-[6px]">{score}</div>
+            <div className="font-pixeboy text-[36px] text-white pt-[6px]">
+              {score}
+            </div>
             {/* Sound Toggle */}
             <button
               onClick={toggleSoundWithoutRestart}

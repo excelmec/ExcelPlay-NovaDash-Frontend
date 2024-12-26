@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 
@@ -10,17 +10,24 @@ import ShipSelector from "./ShipSelector";
 
 import { ShipDetails } from "@/constants";
 
-const Game = dynamic(() => import('./Game'), {
+const Game = dynamic(() => import("./Game"), {
   ssr: false,
-  
-})
+});
+
+const Loading = dynamic(() => import("./Loading"), {
+  ssr: false,
+});
 
 const StartPage = () => {
   const [selectedShip, setSelectedShip] = useState(ShipDetails[0]);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleShipSelect = (ship: { src: string; alt: string; name: string }) => {
+  const handleShipSelect = (ship: {
+    src: string;
+    alt: string;
+    name: string;
+  }) => {
     setSelectedShip(ship);
   };
 
@@ -30,10 +37,12 @@ const StartPage = () => {
     setTimeout(() => {
       setIsGameStarted(true);
       setIsLoading(false);
-    }, 6000); // 5 seconds loading time, adjust as needed
+    }, 6000); // 6 seconds loading time
   };
 
-  
+  if (isLoading) {
+    return <Loading />;
+  }
 
   if (isGameStarted) {
     return <Game selectedShip={selectedShip} />;
@@ -46,6 +55,7 @@ const StartPage = () => {
         alt="stars"
         className="absolute bg-cover h-full w-fit z-0"
       />
+
       <Navbar />
 
       <div className="flex relative items-center flex-col justify-between f-full">
@@ -78,7 +88,7 @@ const StartPage = () => {
             <div className="text-center flex flex-col text-[16px]">
               <a
                 href="#"
-                className="text-skyblue_btn underline underline-offset-2 "
+                className="text-skyblue_btn underline underline-offset-2"
               >
                 VISIT LEADERBOARD
               </a>
@@ -103,4 +113,3 @@ const StartPage = () => {
 };
 
 export default StartPage;
-
