@@ -69,10 +69,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       let spaceshipLaneIndex = 1; // Start in the center lane
       const lanes = [100, 200, 300, 400]; // X positions for 3 lanes
-      const baseSpeed = 2; // Initial speed of obstacles and enemies
+      const baseSpeed = 3; // Increased initial speed of obstacles and enemies
       let speedMultiplier = 1; // Speed multiplier for increasing difficulty
       const MAX_BULLET_SPEED = 20; // Maximum speed for bullets
-      const BASE_ENEMY_SHOOT_INTERVAL = 120; // Base interval for enemy shooting (in frames)
+      const BASE_ENEMY_SHOOT_INTERVAL = 100; // Decreased base interval for enemy shooting (in frames)
       const MIN_ENEMY_SHOOT_INTERVAL = 60; // Minimum interval for enemy shooting (in frames)
       let obstacles: { x: number; y: number; type: string }[] = [];
       let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
@@ -185,7 +185,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         updateAndDrawHUD();
 
         // Gradually increase score over time
-        points += 0.01 * speedMultiplier;
+        points += 0.02 * speedMultiplier; // Doubled the score multiplier
 
         // Check and update game speed based on score
         checkAndUpdateGameSpeed();
@@ -367,7 +367,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
                 createExplosion(enemy.x, enemy.y);
                 enemySpaceships.splice(enemyIndex, 1);
                 bullets.splice(index, 1);
-                points += 20; // Increase score only when destroying an enemy spaceship
+                points += 40; // Doubled the score gained from destroying an enemy spaceship
               }
             });
 
@@ -477,27 +477,41 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const updateAndDrawHUD = () => {
-        const hudHeight = 80; // Increased height of the HUD
+        const hudHeight = 80; // Height of the HUD
     
-        // Darker glassmorphism effect for HUD
+        // Glassmorphism effect for HUD
         p.push();
-        p.fill(0, 0, 0, 150); // Darker background
-        p.noStroke(); // Ensure no stroke for the main HUD background
-        p.rect(0, 0, p.width, hudHeight);
-        p.drawingContext.filter = 'blur(10px)'; // Increased blur
-        p.rect(0, 0, p.width, hudHeight);
+        p.noStroke(); // No stroke for the main HUD background
+    
+        // Semi-transparent white background with reduced opacity
+        p.fill(255, 255, 255, 19); // RGBA equivalent of bg-white/[0.075]
+        p.drawingContext.filter = 'blur(12px)'; // Backdrop blur effect
+        p.rect(0, 0, p.width, hudHeight); // Draw the main HUD background
+    
+        // Remove filter to ensure no blur applied to subsequent elements
         p.drawingContext.filter = 'none';
+    
+        // Inset box shadow effect
+        p.fill(255, 255, 255, 23); // Slightly stronger white for shadow
+        p.beginShape();
+        p.vertex(0, hudHeight);
+        p.vertex(p.width, hudHeight);
+        p.vertex(p.width, hudHeight );
+        p.vertex(0, hudHeight );
+        p.endShape(p.CLOSE);
+    
         p.pop();
     
         // Add slight outline at the bottom of the HUD
         p.push();
-        p.stroke(255, 255, 255, 100); // Semi-transparent white outline
-        p.strokeWeight(2); // Thin stroke
+        p.stroke(255, 255, 255, 23); // Semi-transparent white outline
+        p.strokeWeight(1); // Thin stroke
         p.line(0, hudHeight, p.width, hudHeight); // Horizontal line at the bottom
         p.pop();
     
+        // Display the score
         p.fill(255);
-        p.textSize(28); // Slightly larger text
+        p.textSize(28); // Text size
         p.textAlign(p.LEFT, p.CENTER); // Align text to left and vertically center
         const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
         const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
@@ -511,9 +525,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             p.text(getPowerUpDisplayText(activePowerUp), p.width / 2, hudHeight / 2);
         }
     
-        // Draw sound icon (we'll update this in the next step)
+        // Draw sound icon
         drawSoundIcon();
-      };
+    };
+    
     
     
       const drawSoundIcon = () => {
@@ -715,3 +730,4 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 };
 
 export default Game;
+
