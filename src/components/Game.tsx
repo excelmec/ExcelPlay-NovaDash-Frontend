@@ -1,17 +1,20 @@
 "use client";
+
 import React, { useRef, useEffect, useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import p5 from "p5";
 import gsap from "gsap";
-
 import Image from "next/image";
 import SoundOn from "@/assets/icons/sound_on.svg";
 import SoundOff from "@/assets/icons/sound_off.svg";
+import { GameOverModal } from "@/components/GameOverModel";
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
 }
 
 const Game: React.FC<GameProps> = ({ selectedShip }) => {
+  const router = useRouter();
   const gameRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<p5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
@@ -22,7 +25,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     null
   );
   const isSoundOnRef = useRef(true);
-  const [score, setScore] = useState("0000000000"); // Added score state
+  const [score, setScore] = useState("0000000000");
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
 
   const toggleSoundWithoutRestart = useCallback(() => {
     isSoundOnRef.current = !isSoundOnRef.current;
@@ -49,22 +54,61 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     }
   }, [backgroundMusic]);
 
+  const resetGame = useCallback(() => {
+    setShowGameOverModal(false);
+    setScore("0000000000");
+    setFinalScore(0);
+    if (p5Ref.current) {
+      p5Ref.current.loop();
+      const p = p5Ref.current;
+      p.clear();
+      p.setup();
+      p.draw();
+    }
+    if (backgroundMusic && isSoundOnRef.current) {
+      backgroundMusic.currentTime = 0;
+      backgroundMusic.volume = 1;
+      backgroundMusic.play();
+    }
+  }, [backgroundMusic, isSoundOnRef]);
+
   const sketch = useCallback(
     (p: p5) => {
       p5Ref.current = p;
-      // Only add key listeners in the browser
       const isClient = typeof window !== "undefined";
+      let spaceshipLaneIndex = 1;
+      const lanes = [100, 200, 300, 400];
+      const baseSpeed = 2;
+      let speedMultiplier = 1;
+      const MAX_BULLET_SPEED = 20;
+      const BASE_ENEMY_SHOOT_INTERVAL = 120;
+      const MIN_ENEMY_SHOOT_INTERVAL = 60;
+      let obstacles: { x: number; y: number; type: string }[] = [];
+      let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
+      let enemySpaceships: { x: number; y: number; lane: number }[] = [];
+      let explosions: { x: number; y: number; frame: number; size: number }[] =
+        [];
+      let enemySpaceshipImg: p5.Image;
+      let explosionImg: p5.Image;
+      let asteroidImg: p5.Image;
+      let powerUpImg: p5.Image;
+      let retroFont: p5.Font;
+      let points = 0;
+      let gameOver = false;
+      let shootCooldown = 0;
+      let stars: { x: number; y: number; speed: number }[] = [];
+      let lastSpeedIncreaseScore = 0;
+      let touchStartX = 0;
+      let powerUps: { x: number; y: number; type: string }[] = [];
+      let activePowerUp: string | null = null;
+      let powerUpDuration = 0;
+
       const handleKeyPress = (event: KeyboardEvent) => {
         if (event.key === "ArrowLeft") changeLane(-1);
         if (event.key === "ArrowRight") changeLane(1);
         if (event.key === " ") {
           if (gameOver) {
             resetGame();
-            if (backgroundMusic && isSoundOnRef.current) {
-              backgroundMusic.currentTime = 0;
-              backgroundMusic.volume = 1;
-              backgroundMusic.play();
-            }
           } else {
             shoot();
           }
@@ -75,42 +119,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         window.addEventListener("keydown", handleKeyPress);
       }
 
-      let spaceshipLaneIndex = 1; // Start in the center lane
-      const lanes = [100, 200, 300, 400]; // X positions for 3 lanes
-      const baseSpeed = 2; // Initial speed of obstacles and enemies
-      let speedMultiplier = 1; // Speed multiplier for increasing difficulty
-      const MAX_BULLET_SPEED = 20; // Maximum speed for bullets
-      const BASE_ENEMY_SHOOT_INTERVAL = 120; // Base interval for enemy shooting (in frames)
-      const MIN_ENEMY_SHOOT_INTERVAL = 60; // Minimum interval for enemy shooting (in frames)
-      let obstacles: { x: number; y: number; type: string }[] = [];
-      let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
-      let enemySpaceships: { x: number; y: number; lane: number }[] = [];
-      let explosions: { x: number; y: number; frame: number; size: number }[] =
-        [];
-      spaceshipRef.current = null;
-      let enemySpaceshipImg: p5.Image;
-      let explosionImg: p5.Image;
-      let asteroidImg: p5.Image;
-      let powerUpImg: p5.Image; // Add this line
-      let retroFont: p5.Font;
-      let points = 0;
-      let gameOver = false;
-      let shootCooldown = 0;
-      let stars: { x: number; y: number; speed: number }[] = [];
-      let lastSpeedIncreaseScore = 0;
-      let touchStartX = 0;
-
-      // New state variables for power-ups
-      let powerUps: { x: number; y: number; type: string }[] = [];
-      let activePowerUp: string | null = null;
-      let powerUpDuration = 0;
-
       p.preload = () => {
         spaceshipRef.current = p.loadImage(selectedShip.src);
         enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
-        powerUpImg = p.loadImage("/powerup.png"); // Add this line
+        powerUpImg = p.loadImage("/powerup.png");
         retroFont = p.loadFont("/Pixeboy.ttf");
       };
 
@@ -132,10 +146,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
 
-      // New function to create power-ups
       const createPowerUp = () => {
         if (p.random(1) < 0.05) {
-          // 5% chance to spawn a power-up
           const laneIndex = p.floor(p.random(0, lanes.length));
           const powerUpType = p.random(["slow", "multiplier", "shield"]);
           powerUps.push({
@@ -157,10 +169,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const drawStars = () => {
-        p.fill(255, 255, 255, 128); // Semi-transparent white
+        p.fill(255, 255, 255, 128);
         p.noStroke();
         stars.forEach((star) => {
-          const size = star.speed * 0.8; // Smaller stars
+          const size = star.speed * 0.8;
           p.ellipse(star.x, star.y, size, size);
         });
       };
@@ -175,9 +187,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         if (currentThreshold) {
           speedMultiplier *= 1.5;
           lastSpeedIncreaseScore = currentThreshold;
-          console.log(
-            `Speed increased at score ${currentThreshold}. New multiplier: ${speedMultiplier}`
-          );
         }
       };
 
@@ -187,22 +196,18 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         drawStars();
         drawSpaceship();
         handleObstacles();
-        // New power-up handling
         handlePowerUps();
         handleEnemySpaceships();
         handleBullets();
         handleExplosions();
         updateAndDrawHUD();
 
-        // Gradually increase score over time
         points += 0.01 * speedMultiplier;
-
-        // Check and update game speed based on score
         checkAndUpdateGameSpeed();
       };
 
       const drawBackground = () => {
-        p.background(10, 10, 15); // Very dark blue-black color
+        p.background(10, 10, 15);
       };
 
       const drawSpaceship = () => {
@@ -223,7 +228,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const handleObstacles = () => {
-        // Generate asteroids
         if (p.frameCount % 90 === 0) {
           const laneIndex = p.floor(p.random(0, lanes.length));
           const newAsteroid = {
@@ -232,7 +236,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             type: "asteroid" as const,
           };
 
-          // Check if the new asteroid overlaps with existing obstacles or enemy spaceships
           const isOverlapping = [...obstacles, ...enemySpaceships].some((obj) =>
             checkCollision(newAsteroid, obj, 80)
           );
@@ -242,14 +245,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           }
         }
 
-        // Move and draw obstacles
         obstacles.forEach((obstacle, index) => {
           if (obstacle.type === "asteroid") {
             p.image(asteroidImg, obstacle.x, obstacle.y, 30, 30);
           }
           obstacle.y += baseSpeed * speedMultiplier * 0.5;
 
-          // Collision detection
           if (
             obstacle.y > p.height - 70 &&
             obstacle.y < p.height - 30 &&
@@ -261,35 +262,32 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
                 obstacles.splice(index, 1);
                 deactivatePowerUp();
               } else {
-                createExplosion(obstacle.x, p.height - 50); // Create explosion at collision point
+                createExplosion(obstacle.x, p.height - 50);
                 gameOver = true;
                 fadeOutBackgroundMusic();
                 if (gameOverSound && isSoundOnRef.current) {
                   gameOverSound.play();
                 }
                 p.noLoop();
+                setFinalScore(Math.floor(points));
+                setShowGameOverModal(true);
               }
             }
           }
         });
 
-        // Remove obstacles that are out of view
         obstacles = obstacles.filter((obstacle) => obstacle.y < p.height);
       };
 
-      // New function to handle power-ups
       const handlePowerUps = () => {
-        // Generate power-ups
         if (p.frameCount % 300 === 0) {
           createPowerUp();
         }
 
-        // Move and draw power-ups
         powerUps.forEach((powerUp, index) => {
-          p.image(powerUpImg, powerUp.x, powerUp.y, 30, 30); // Updated line
+          p.image(powerUpImg, powerUp.x, powerUp.y, 30, 30);
           powerUp.y += baseSpeed * speedMultiplier * 0.5;
 
-          // Collision detection with player
           if (
             powerUp.y > p.height - 70 &&
             powerUp.y < p.height - 30 &&
@@ -300,10 +298,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           }
         });
 
-        // Remove power-ups that are out of view
         powerUps = powerUps.filter((powerUp) => powerUp.y < p.height);
 
-        // Handle active power-up duration
         if (activePowerUp) {
           powerUpDuration--;
           if (powerUpDuration <= 0) {
@@ -313,7 +309,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const handleEnemySpaceships = () => {
-        // Generate enemy spaceships
         if (p.frameCount % 120 === 0 && enemySpaceships.length === 0) {
           const availableLanes = [0, 1, 2].filter(
             (lane) => !enemySpaceships.some((enemy) => enemy.lane === lane)
@@ -324,7 +319,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               availableLanes[Math.floor(p.random(0, availableLanes.length))];
             const newEnemy = { x: lanes[laneIndex], y: 0, lane: laneIndex };
 
-            // Check if the new enemy overlaps with existing obstacles
             const isOverlapping = obstacles.some((obj) =>
               checkCollision(newEnemy, obj, 80)
             );
@@ -339,12 +333,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           p.image(enemySpaceshipImg, enemy.x, enemy.y, 60, 60);
           enemy.y += baseSpeed * speedMultiplier * 0.5;
 
-          // Enemy shooting
           if (p.frameCount % BASE_ENEMY_SHOOT_INTERVAL === 0) {
             bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true });
           }
 
-          // Collision detection with player
           if (
             enemy.y > p.height - 70 &&
             enemy.y < p.height - 30 &&
@@ -358,10 +350,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               gameOverSound.play();
             }
             p.noLoop();
+            setFinalScore(Math.floor(points));
+            setShowGameOverModal(true);
           }
         });
 
-        // Remove enemy spaceships that are out of view
         enemySpaceships = enemySpaceships.filter((enemy) => enemy.y < p.height);
       };
 
@@ -376,17 +369,15 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           bullet.y += bulletSpeed;
 
           if (!bullet.isEnemy) {
-            // Check for collision with enemy spaceships
             enemySpaceships.forEach((enemy, enemyIndex) => {
               if (p.dist(bullet.x, bullet.y, enemy.x, enemy.y) < 30) {
                 createExplosion(enemy.x, enemy.y);
                 enemySpaceships.splice(enemyIndex, 1);
                 bullets.splice(index, 1);
-                points += 20; // Increase score only when destroying an enemy spaceship
+                points += 20;
               }
             });
 
-            // Check for collision with asteroids
             obstacles.forEach((obstacle) => {
               if (
                 obstacle.type === "asteroid" &&
@@ -396,7 +387,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               }
             });
           } else {
-            // Check for collision with player
             if (
               bullet.y > p.height - 70 &&
               bullet.y < p.height - 30 &&
@@ -410,16 +400,16 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
                 gameOverSound.play();
               }
               p.noLoop();
+              setFinalScore(Math.floor(points));
+              setShowGameOverModal(true);
             }
           }
         });
 
-        // Remove bullets that are out of view
         bullets = bullets.filter(
           (bullet) => bullet.y > 0 && bullet.y < p.height
         );
 
-        // Decrease shoot cooldown
         if (shootCooldown > 0) shootCooldown--;
       };
 
@@ -451,19 +441,16 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         });
       };
 
-      // New functions to activate and deactivate power-ups
       const activatePowerUp = (type: string) => {
         activePowerUp = type;
-        powerUpDuration = 600; // 5 seconds (60 frames per second)
+        powerUpDuration = 600;
         switch (type) {
           case "slow":
             speedMultiplier *= 0.5;
             break;
           case "multiplier":
-            // The score multiplier effect is handled in updateAndDrawHUD
             break;
           case "shield":
-            // The shield effect is handled in collision detection
             break;
         }
       };
@@ -471,9 +458,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       const deactivatePowerUp = () => {
         switch (activePowerUp) {
           case "slow":
-            speedMultiplier *= 2; // Revert the speed
+            speedMultiplier *= 2;
             break;
-          // No need to handle 'multiplier' and 'shield' here
         }
         activePowerUp = null;
       };
@@ -492,7 +478,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const updateAndDrawHUD = () => {
-        // Updated updateAndDrawHUD function
         const scoreMultiplier = activePowerUp === "multiplier" ? 2 : 1;
         const newScore = Math.floor(points * scoreMultiplier)
           .toString()
@@ -501,7 +486,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         return newScore;
       };
 
-      // Updated mousePressed function
       p.mousePressed = () => {
         const iconSize = 30;
         const iconX = p.width - iconSize - 10;
@@ -513,9 +497,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           p.mouseY < iconY + iconSize
         ) {
           toggleSoundWithoutRestart();
-          return false; // Prevent default behavior
+          return false;
         }
-        return true; // Allow default behavior for other interactions
+        return true;
       };
 
       const changeLane = (direction: number) => {
@@ -543,38 +527,14 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             y: p.height - 70,
             isEnemy: false,
           });
-          shootCooldown = 15; // Set cooldown to prevent rapid firing
+          shootCooldown = 15;
           if (shootSound && isSoundOnRef.current) {
-            shootSound.currentTime = 0; // Reset the audio to the beginning
+            shootSound.currentTime = 0;
             shootSound.play();
           }
         }
       };
 
-      const resetGame = () => {
-        spaceshipLaneIndex = 1;
-        speedMultiplier = 1;
-        obstacles = [];
-        bullets = [];
-        enemySpaceships = [];
-        explosions = [];
-        points = 0;
-        gameOver = false;
-        shootCooldown = 0;
-        lastSpeedIncreaseScore = 0;
-        // Reset power-ups
-        powerUps = [];
-        activePowerUp = null;
-        powerUpDuration = 0;
-        p.loop();
-        if (backgroundMusic && isSoundOnRef.current) {
-          backgroundMusic.currentTime = 0;
-          backgroundMusic.volume = 1;
-          backgroundMusic.play();
-        }
-      };
-
-      // Touch events for mobile swipe gestures
       p.touchStarted = (event: TouchEvent) => {
         if (event.touches && event.touches[0]) {
           touchStartX = event.touches[0].clientX;
@@ -588,24 +548,31 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           const swipeDistance = touchEndX - touchStartX;
 
           if (swipeDistance > 50) {
-            changeLane(1); // Move spaceship to the right
+            changeLane(1);
           } else if (swipeDistance < -50) {
-            changeLane(-1); // Move spaceship to the left
+            changeLane(-1);
           } else {
-            shoot(); // Tap to shoot
+            shoot();
           }
         }
         return false;
       };
 
-      // Cleanup the event listener on component unmount
       return () => {
         if (isClient) {
           window.removeEventListener("keydown", handleKeyPress);
         }
       };
     },
-    [selectedShip, isSoundOnRef, fadeOutBackgroundMusic, backgroundMusic]
+    [
+      selectedShip,
+      isSoundOnRef,
+      fadeOutBackgroundMusic,
+      backgroundMusic,
+      gameOverSound,
+      shootSound,
+      resetGame,
+    ]
   );
 
   useEffect(() => {
@@ -638,22 +605,19 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       const p5Instance = new p5(sketch, gameRef.current!);
 
       return () => {
-        p5Instance.remove(); // Cleanup on unmount
+        p5Instance.remove();
       };
     }
-  }, [sketch]);
+  }, [sketch, resetGame]);
 
   return (
     <div className="w-full h-screen flex items-center justify-center relative">
       <div ref={gameRef} className="relative max-w-[500px] h-full w-full">
-        {/* HUD Bar */}
         <div className="w-full navBorder max-h-[82px] h-full absolute z-10 top-0">
           <div className="flex items-center justify-between px-[21px] py-2 backdrop-blur-[12px] w-full max-h-[96px] h-full navStyle ">
-            {/* Score Display */}
             <div className="font-pixeboy text-[36px] text-white pt-[6px]">
               {score}
             </div>
-            {/* Sound Toggle */}
             <button
               onClick={toggleSoundWithoutRestart}
               className="p-2 rounded-lg "
@@ -667,6 +631,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           </div>
         </div>
       </div>
+      <GameOverModal
+        isOpen={showGameOverModal}
+        score={finalScore}
+        onPlayAgain={resetGame}
+        onGoHome={() => window.location.reload()}
+      />
     </div>
   );
 };
