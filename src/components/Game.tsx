@@ -15,7 +15,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const [shootSound, setShootSound] = useState<HTMLAudioElement | null>(null);
   const [gameOverSound, setGameOverSound] = useState<HTMLAudioElement | null>(null);
   const isSoundOnRef = useRef(true);
-  const [score, setScore] = useState("0000000000"); // Added score state
 
   const toggleSoundWithoutRestart = useCallback(() => {
     isSoundOnRef.current = !isSoundOnRef.current;
@@ -477,18 +476,98 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
 
-      const updateAndDrawHUD = () => { // Updated updateAndDrawHUD function
+      const updateAndDrawHUD = () => {
+        const hudHeight = 80; // Increased height of the HUD
+    
+        // Darker glassmorphism effect for HUD
+        p.push();
+        p.fill(0, 0, 0, 150); // Darker background
+        p.noStroke(); // Ensure no stroke for the main HUD background
+        p.rect(0, 0, p.width, hudHeight);
+        p.drawingContext.filter = 'blur(10px)'; // Increased blur
+        p.rect(0, 0, p.width, hudHeight);
+        p.drawingContext.filter = 'none';
+        p.pop();
+    
+        // Add slight outline at the bottom of the HUD
+        p.push();
+        p.stroke(255, 255, 255, 100); // Semi-transparent white outline
+        p.strokeWeight(2); // Thin stroke
+        p.line(0, hudHeight, p.width, hudHeight); // Horizontal line at the bottom
+        p.pop();
+    
+        p.fill(255);
+        p.textSize(28); // Slightly larger text
+        p.textAlign(p.LEFT, p.CENTER); // Align text to left and vertically center
         const scoreMultiplier = activePowerUp === 'multiplier' ? 2 : 1;
-        const newScore = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
-        setScore(newScore);
-        return newScore;
+        const score = Math.floor(points * scoreMultiplier).toString().padStart(10, '0');
+        p.text(score, 20, hudHeight / 2); // Place score at the middle of the HUD
+    
+        // Display active power-up
+        if (activePowerUp) {
+            p.textAlign(p.CENTER, p.CENTER); // Center align power-up text
+            p.textSize(22);
+            p.fill(255, 255, 0); // Yellow color for power-up text
+            p.text(getPowerUpDisplayText(activePowerUp), p.width / 2, hudHeight / 2);
+        }
+    
+        // Draw sound icon (we'll update this in the next step)
+        drawSoundIcon();
       };
+    
+    
+      const drawSoundIcon = () => {
+        p.push();
+        const iconSize = 40;
+        const iconX = p.width - iconSize - 20;
+        const iconY = 20;
+        const centerX = iconX + iconSize / 2;
+        const centerY = iconY + iconSize / 2;
 
-      // Updated mousePressed function
+        // Draw button background with a gradient
+        p.noStroke();
+        const gradient = p.drawingContext.createRadialGradient(
+          centerX, centerY, 0,
+          centerX, centerY, iconSize / 2
+        );
+        gradient.addColorStop(0, p.color(60, 60, 60, 200));
+        gradient.addColorStop(1, p.color(30, 30, 30, 200));
+        p.drawingContext.fillStyle = gradient;
+        p.circle(centerX, centerY, iconSize);
+
+        // Draw icon
+        p.stroke(255);
+        p.strokeWeight(2);
+        p.noFill();
+        
+        // Speaker
+        p.beginShape();
+        p.vertex(centerX - 8, centerY - 5);
+        p.vertex(centerX - 3, centerY - 5);
+        p.vertex(centerX + 3, centerY - 10);
+        p.vertex(centerX + 3, centerY + 10);
+        p.vertex(centerX - 3, centerY + 5);
+        p.vertex(centerX - 8, centerY + 5);
+        p.endShape(p.CLOSE);
+
+        if (isSoundOnRef.current) {
+          // Sound waves
+          p.arc(centerX + 6, centerY, 10, 15, -p.QUARTER_PI, p.QUARTER_PI);
+          p.arc(centerX + 8, centerY, 15, 20, -p.QUARTER_PI, p.QUARTER_PI);
+        } else {
+          // Cross line for mute
+          p.line(centerX - 10, centerY - 10, centerX + 10, centerY + 10);
+        }
+
+        p.pop();
+      };
+      
+
+
       p.mousePressed = () => {
-        const iconSize = 30;
-        const iconX = p.width - iconSize - 10;
-        const iconY = 10;
+        const iconSize = 40;
+        const iconX = p.width - iconSize - 20;
+        const iconY = 20;
         if (
           p.mouseX > iconX &&
           p.mouseX < iconX + iconSize &&
@@ -627,56 +706,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   }, [sketch]);
 
   return (
-    <div className="w-full h-screen flex items-center justify-center relative">
-      <div ref={gameRef} className="relative">
-        <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4">
-          <div className="backdrop-blur-md bg-black/30 px-4 py-2 rounded-lg border border-white/10">
-            <p className="font-mono text-2xl text-white">{score}</p> {/* Updated to use score state */}
-          </div>
-          <button
-            onClick={toggleSoundWithoutRestart}
-            className="backdrop-blur-md bg-black/30 p-2 rounded-lg border border-white/10"
-          >
-            {isSoundOnRef.current ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M12 18.012l-4.293-4.293A1 1 0 016.293 13H4a1 1 0 01-1-1v-4a1 1 0 011-1h2.293a1 1 0 01.707.293L12 11.988v6.024z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
+    <div
+      ref={gameRef}
+      className="w-full h-screen flex items-center justify-center relative"
+    > 
     </div>
   );
 };
