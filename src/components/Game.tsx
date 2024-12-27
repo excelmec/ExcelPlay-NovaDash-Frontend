@@ -124,7 +124,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
-        powerUpImg = p.loadImage("/powerup.png");
+        powerUpImg = p.loadImage("/powerup.gif");
         retroFont = p.loadFont("/Pixeboy.ttf");
       };
 
