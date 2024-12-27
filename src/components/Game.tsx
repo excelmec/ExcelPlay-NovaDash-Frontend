@@ -374,7 +374,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
                 createExplosion(enemy.x, enemy.y);
                 enemySpaceships.splice(enemyIndex, 1);
                 bullets.splice(index, 1);
-                points += 20;
+                points += 50;
               }
             });
 
