@@ -85,7 +85,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       const baseSpeed = 2; // Increased by 4 times
       let speedMultiplier = 1;
       const MAX_BULLET_SPEED = 20;
-      const BASE_ENEMY_SHOOT_INTERVAL = 120;
+      const BASE_ENEMY_SHOOT_INTERVAL = Math.floor(120 / Math.sqrt(speedMultiplier));
       const MIN_ENEMY_SHOOT_INTERVAL = 60;
       let obstacles: { x: number; y: number; type: string }[] = [];
       let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
@@ -201,7 +201,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const checkAndUpdateGameSpeed = () => {
-        const scoreThresholds = [100, 200, 500, 1000, 2500, 9000];
+        const scoreThresholds = [100, 200, 400, 800, 1000, 2500, 9000];
         const currentThreshold = scoreThresholds.find(
           (threshold) =>
             points >= threshold && threshold > lastSpeedIncreaseScore
@@ -357,7 +357,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           enemy.y += baseSpeed * speedMultiplier * 0.5;
 
           if (p.frameCount % BASE_ENEMY_SHOOT_INTERVAL === 0) {
-            bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true });
+            const adjustedInterval = Math.max(BASE_ENEMY_SHOOT_INTERVAL, MIN_ENEMY_SHOOT_INTERVAL);
+            if (p.random(1) < (BASE_ENEMY_SHOOT_INTERVAL / adjustedInterval)) {
+              bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true });
+            }
           }
 
           if (
@@ -386,7 +389,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           p.fill(bullet.isEnemy ? 255 : 0, bullet.isEnemy ? 0 : 255, 0);
           p.rect(bullet.x - 2, bullet.y, 4, 10);
           const bulletSpeed = Math.min(
-            (bullet.isEnemy ? 5 : -10) * Math.sqrt(speedMultiplier),
+            (bullet.isEnemy ? 5 * Math.sqrt(speedMultiplier) : -10 * Math.sqrt(speedMultiplier)),
             MAX_BULLET_SPEED
           );
           bullet.y += bulletSpeed;
