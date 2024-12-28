@@ -107,7 +107,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let powerUpDuration = 0;
       let collisionState = false;
       let collisionTimer = 0;
-      const COLLISION_DURATION = 60; // 1 second at 60 fps
+      const COLLISION_DURATION = 30; // 1 second at 60 fps
 
       p.resetGameState = () => {
         spaceshipLaneIndex = 1;
