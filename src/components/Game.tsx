@@ -16,7 +16,7 @@ interface GameProps {
 const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const router = useRouter();
   const gameRef = useRef<HTMLDivElement>(null);
-  const p5Ref = useRef<p5 | null>(null);
+  const p5Ref = useRef<ExtendedP5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
   const [backgroundMusic, setBackgroundMusic] =
     useState<HTMLAudioElement | null>(null);
@@ -59,11 +59,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     setScore("0000000000");
     setFinalScore(0);
     if (p5Ref.current) {
-      p5Ref.current.loop();
       const p = p5Ref.current;
+      p.resetGameState();
       p.clear();
       p.setup();
-      p.draw();
+      p.loop();
     }
     if (backgroundMusic && isSoundOnRef.current) {
       backgroundMusic.currentTime = 0;
@@ -72,16 +72,20 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     }
   }, [backgroundMusic, isSoundOnRef]);
 
+  interface ExtendedP5 extends p5 {
+    resetGameState: () => void;
+  }
+  
   const sketch = useCallback(
-    (p: p5) => {
+      (p: ExtendedP5) => {
       p5Ref.current = p;
       const isClient = typeof window !== "undefined";
       let spaceshipLaneIndex = 1;
       const lanes = [100, 200, 300, 400];
-      const baseSpeed = 2;
+      const baseSpeed = 2; // Increased by 4 times
       let speedMultiplier = 1;
       const MAX_BULLET_SPEED = 20;
-      const BASE_ENEMY_SHOOT_INTERVAL = 120;
+      const BASE_ENEMY_SHOOT_INTERVAL = Math.floor(120 / Math.sqrt(speedMultiplier));
       const MIN_ENEMY_SHOOT_INTERVAL = 60;
       let obstacles: { x: number; y: number; type: string }[] = [];
       let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
@@ -102,6 +106,25 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let powerUps: { x: number; y: number; type: string }[] = [];
       let activePowerUp: string | null = null;
       let powerUpDuration = 0;
+
+      // Add reset method to p5 instance
+      p.resetGameState = () => {
+        spaceshipLaneIndex = 1;
+        speedMultiplier = 1;
+        obstacles = [];
+        bullets = [];
+        enemySpaceships = [];
+        explosions = [];
+        points = 0;
+        gameOver = false;
+        shootCooldown = 0;
+        lastSpeedIncreaseScore = 0;
+        powerUps = [];
+        activePowerUp = null;
+        powerUpDuration = 0;
+        stars = [];
+        createStars();
+      };
 
       const handleKeyPress = (event: KeyboardEvent) => {
         if (event.key === "ArrowLeft") changeLane(-1);
@@ -178,7 +201,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const checkAndUpdateGameSpeed = () => {
-        const scoreThresholds = [100, 200, 500, 1000, 2500, 9000];
+        const scoreThresholds = [100, 200, 400, 800, 1000, 2500, 9000];
         const currentThreshold = scoreThresholds.find(
           (threshold) =>
             points >= threshold && threshold > lastSpeedIncreaseScore
@@ -334,7 +357,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           enemy.y += baseSpeed * speedMultiplier * 0.5;
 
           if (p.frameCount % BASE_ENEMY_SHOOT_INTERVAL === 0) {
-            bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true });
+            const adjustedInterval = Math.max(BASE_ENEMY_SHOOT_INTERVAL, MIN_ENEMY_SHOOT_INTERVAL);
+            if (p.random(1) < (BASE_ENEMY_SHOOT_INTERVAL / adjustedInterval)) {
+              bullets.push({ x: enemy.x, y: enemy.y + 20, isEnemy: true });
+            }
           }
 
           if (
@@ -363,7 +389,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           p.fill(bullet.isEnemy ? 255 : 0, bullet.isEnemy ? 0 : 255, 0);
           p.rect(bullet.x - 2, bullet.y, 4, 10);
           const bulletSpeed = Math.min(
-            (bullet.isEnemy ? 5 : -10) * Math.sqrt(speedMultiplier),
+            (bullet.isEnemy ? 5 * Math.sqrt(speedMultiplier) : -10 * Math.sqrt(speedMultiplier)),
             MAX_BULLET_SPEED
           );
           bullet.y += bulletSpeed;
@@ -453,7 +479,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           case "shield":
             break;
         }
-        getPowerUpDisplayText(type);
       };
 
       const deactivatePowerUp = () => {
@@ -488,19 +513,25 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       p.mousePressed = () => {
+        handleSoundToggle();
+        return false;
+      };
+
+      p.touchStarted = () => {
+        handleSoundToggle();
+        return false;
+      };
+
+      const handleSoundToggle = () => {
         const iconSize = 30;
         const iconX = p.width - iconSize - 10;
         const iconY = 10;
         if (
-          p.mouseX > iconX &&
-          p.mouseX < iconX + iconSize &&
-          p.mouseY > iconY &&
-          p.mouseY < iconY + iconSize
+          (p.mouseX > iconX && p.mouseX < iconX + iconSize && p.mouseY > iconY && p.mouseY < iconY + iconSize) ||
+          (p.touches && p.touches[0] && (p.touches[0] as Touch).clientX > iconX && (p.touches[0] as Touch).clientX < iconX + iconSize && (p.touches[0] as Touch).clientY > iconY && (p.touches[0] as Touch).clientY < iconY + iconSize)
         ) {
           toggleSoundWithoutRestart();
-          return false;
         }
-        return true;
       };
 
       const changeLane = (direction: number) => {
@@ -522,7 +553,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const shoot = () => {
-        if (shootCooldown === 0 && !gameOver) {
+        if (shootCooldown === 0) {
           bullets.push({
             x: lanes[spaceshipLaneIndex],
             y: p.height - 70,
@@ -621,7 +652,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             </div>
             <button
               onClick={toggleSoundWithoutRestart}
-              className="p-2 rounded-lg "
+              onTouchStart={toggleSoundWithoutRestart}
+              className="p-2 rounded-lg touch-action-none"
             >
               {isSoundOnRef.current ? (
                 <Image src={SoundOn} alt="On" />
