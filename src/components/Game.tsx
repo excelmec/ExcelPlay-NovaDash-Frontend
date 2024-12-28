@@ -453,6 +453,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           case "shield":
             break;
         }
+        getPowerUpDisplayText(type);
       };
 
       const deactivatePowerUp = () => {
@@ -521,7 +522,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const shoot = () => {
-        if (shootCooldown === 0) {
+        if (shootCooldown === 0 && !gameOver) {
           bullets.push({
             x: lanes[spaceshipLaneIndex],
             y: p.height - 70,
@@ -642,3 +643,4 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 };
 
 export default Game;
+

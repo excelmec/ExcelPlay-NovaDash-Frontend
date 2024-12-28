@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 
 const loadingTexts = [
-  "Starting up...",
-  "Please wait...",
-  "Repairing issues...",
-  "Finishing...",
+  "Refueling the starship...",
+  "Calibrating asteroid radars...",
+  "Powering up photon blasters...",
+  "Engaging thrusters...",
 ];
 
 export default function SpaceShooterLoading() {
