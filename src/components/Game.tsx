@@ -82,7 +82,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       const isClient = typeof window !== "undefined";
       let spaceshipLaneIndex = 1;
       const lanes = [100, 200, 300, 400];
-      const baseSpeed = 2;
+      const baseSpeed = 2; // Increased by 4 times
       let speedMultiplier = 1;
       const MAX_BULLET_SPEED = 20;
       const BASE_ENEMY_SHOOT_INTERVAL = 120;
@@ -201,7 +201,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const checkAndUpdateGameSpeed = () => {
-        const scoreThresholds = [100, 200, 500, 1000, 2500, 9000];
+        const scoreThresholds = [2, 3, 4, 50, 100, 200, 500, 1000, 2500, 9000];
         const currentThreshold = scoreThresholds.find(
           (threshold) =>
             points >= threshold && threshold > lastSpeedIncreaseScore
@@ -510,19 +510,25 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       p.mousePressed = () => {
+        handleSoundToggle();
+        return false;
+      };
+
+      p.touchStarted = () => {
+        handleSoundToggle();
+        return false;
+      };
+
+      const handleSoundToggle = () => {
         const iconSize = 30;
         const iconX = p.width - iconSize - 10;
         const iconY = 10;
         if (
-          p.mouseX > iconX &&
-          p.mouseX < iconX + iconSize &&
-          p.mouseY > iconY &&
-          p.mouseY < iconY + iconSize
+          (p.mouseX > iconX && p.mouseX < iconX + iconSize && p.mouseY > iconY && p.mouseY < iconY + iconSize) ||
+          (p.touches && p.touches[0] && (p.touches[0] as Touch).clientX > iconX && (p.touches[0] as Touch).clientX < iconX + iconSize && (p.touches[0] as Touch).clientY > iconY && (p.touches[0] as Touch).clientY < iconY + iconSize)
         ) {
           toggleSoundWithoutRestart();
-          return false;
         }
-        return true;
       };
 
       const changeLane = (direction: number) => {
@@ -643,7 +649,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             </div>
             <button
               onClick={toggleSoundWithoutRestart}
-              className="p-2 rounded-lg "
+              onTouchStart={toggleSoundWithoutRestart}
+              className="p-2 rounded-lg touch-action-none"
             >
               {isSoundOnRef.current ? (
                 <Image src={SoundOn} alt="On" />
@@ -665,3 +672,4 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 };
 
 export default Game;
+
