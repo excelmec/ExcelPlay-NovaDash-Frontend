@@ -5,7 +5,7 @@
 @layer base {
   html,
   body {
-    background: #a5a5a5;
+    background: #000;
     box-sizing: border-box;
   }
 }
@@ -39,7 +39,8 @@
     background: linear-gradient(#000 0 0) padding-box,
       linear-gradient(
           150deg,
-          rgba(255, 255, 255, 0.34) 28%,
+          rgba(255, 255, 255, 0) 12%,
+          rgba(255, 255, 255, 0.34) 42%,
           rgba(255, 255, 255, 0)
         )
         border-box;
@@ -47,11 +48,22 @@
     border-bottom: 2px solid transparent;
     display: inline-block;
   }
+
+  @media (width > 448px) {
+    .border-smaller {
+      border-left-width: 2px;
+      border-right-width: 2px;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  
 }
 
 /* loading css*/
 @keyframes blink {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
