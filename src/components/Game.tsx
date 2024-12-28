@@ -131,7 +131,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         if (event.key === "ArrowRight") changeLane(1);
         if (event.key === " ") {
           if (gameOver) {
-            resetGame();
+            
           } else {
             shoot();
           }
