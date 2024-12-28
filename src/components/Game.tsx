@@ -16,7 +16,7 @@ interface GameProps {
 const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const router = useRouter();
   const gameRef = useRef<HTMLDivElement>(null);
-  const p5Ref = useRef<p5 | null>(null);
+  const p5Ref = useRef<ExtendedP5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
   const [backgroundMusic, setBackgroundMusic] =
     useState<HTMLAudioElement | null>(null);
@@ -59,11 +59,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     setScore("0000000000");
     setFinalScore(0);
     if (p5Ref.current) {
-      p5Ref.current.loop();
       const p = p5Ref.current;
+      p.resetGameState();
       p.clear();
       p.setup();
-      p.draw();
+      p.loop();
     }
     if (backgroundMusic && isSoundOnRef.current) {
       backgroundMusic.currentTime = 0;
@@ -72,8 +72,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     }
   }, [backgroundMusic, isSoundOnRef]);
 
+  interface ExtendedP5 extends p5 {
+    resetGameState: () => void;
+  }
+  
   const sketch = useCallback(
-    (p: p5) => {
+      (p: ExtendedP5) => {
       p5Ref.current = p;
       const isClient = typeof window !== "undefined";
       let spaceshipLaneIndex = 1;
@@ -102,6 +106,25 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let powerUps: { x: number; y: number; type: string }[] = [];
       let activePowerUp: string | null = null;
       let powerUpDuration = 0;
+
+      // Add reset method to p5 instance
+      p.resetGameState = () => {
+        spaceshipLaneIndex = 1;
+        speedMultiplier = 1;
+        obstacles = [];
+        bullets = [];
+        enemySpaceships = [];
+        explosions = [];
+        points = 0;
+        gameOver = false;
+        shootCooldown = 0;
+        lastSpeedIncreaseScore = 0;
+        powerUps = [];
+        activePowerUp = null;
+        powerUpDuration = 0;
+        stars = [];
+        createStars();
+      };
 
       const handleKeyPress = (event: KeyboardEvent) => {
         if (event.key === "ArrowLeft") changeLane(-1);
@@ -453,7 +476,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           case "shield":
             break;
         }
-        getPowerUpDisplayText(type);
       };
 
       const deactivatePowerUp = () => {
@@ -522,7 +544,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const shoot = () => {
-        if (shootCooldown === 0 && !gameOver) {
+        if (shootCooldown === 0) {
           bullets.push({
             x: lanes[spaceshipLaneIndex],
             y: p.height - 70,
@@ -643,4 +665,3 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 };
 
 export default Game;
-
