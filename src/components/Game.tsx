@@ -24,6 +24,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const [gameOverSound, setGameOverSound] = useState<HTMLAudioElement | null>(
     null
   );
+  const [powerUpSound, setPowerUpSound] = useState<HTMLAudioElement | null>(null);
   const isSoundOnRef = useRef(true);
   const [score, setScore] = useState("0000000000");
   const [showGameOverModal, setShowGameOverModal] = useState(false);
@@ -108,6 +109,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let collisionState = false;
       let collisionTimer = 0;
       const COLLISION_DURATION = 30; // 1 second at 60 fps
+      let powerUpMessage: string | null = null;
+      let powerUpMessageTimer = 0;
+      
 
       p.resetGameState = () => {
         spaceshipLaneIndex = 1;
@@ -126,6 +130,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         stars = [];
         collisionState = false;
         collisionTimer = 0;
+        powerUpMessage = null;
+        powerUpMessageTimer = 0;
         createStars();
       };
 
@@ -226,6 +232,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         handleBullets();
         handleExplosions();
         updateAndDrawHUD();
+        drawPowerUpMessage();
 
         if (collisionState) {
           collisionTimer--;
@@ -479,6 +486,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       const activatePowerUp = (type: string) => {
         activePowerUp = type;
         powerUpDuration = 600;
+        if (powerUpSound && isSoundOnRef.current) {
+          powerUpSound.currentTime = 0;
+          powerUpSound.play();
+        }
+        powerUpMessage = getPowerUpDisplayText(type);
+        powerUpMessageTimer = 180; // 3 seconds at 60 fps
         switch (type) {
           case "slow":
             speedMultiplier *= 0.5;
@@ -512,6 +525,30 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
 
+    
+
+const showPowerUpMessage = (message: string) => {
+  powerUpMessage = message;
+  powerUpMessageTimer = 120; // 3 seconds at 60 FPS
+};
+
+const drawPowerUpMessage = () => {
+  if (powerUpMessage && powerUpMessageTimer > 0) {
+    const isBlinking = Math.floor(powerUpMessageTimer / 10) % 2 === 0; // Alternate blinking
+    if (isBlinking) {
+      p.fill(255, 255, 0); // Yellow color
+      p.textSize(27);
+      p.textAlign(p.CENTER, p.TOP);
+      p.text(powerUpMessage, p.width / 2, 100);
+    }
+    powerUpMessageTimer--;
+    if (powerUpMessageTimer <= 0) {
+      powerUpMessage = ""; // Clear the message after 3 seconds
+    }
+  }
+};
+
+
       const updateAndDrawHUD = () => {
         const scoreMultiplier = activePowerUp === "multiplier" ? 2 : 1;
         const newScore = Math.floor(points * scoreMultiplier)
@@ -520,7 +557,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         setScore(newScore);
         return newScore;
       };
-
 
       p.mousePressed = () => {
         handleSoundToggle();
@@ -613,6 +649,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       backgroundMusic,
       gameOverSound,
       shootSound,
+      powerUpSound,
       resetGame,
     ]
   );
@@ -639,6 +676,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
     if (typeof window !== "undefined") {
       setShootSound(new Audio("/shoot.mp3"));
       setGameOverSound(new Audio("/game-over.mp3"));
+      setPowerUpSound(new Audio("/powerup.mp3"));
     }
   }, []);
 
