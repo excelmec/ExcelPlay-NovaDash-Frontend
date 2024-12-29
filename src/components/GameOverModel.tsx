@@ -53,15 +53,17 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                     <div className="flex justify-center items-center flex-col gap-0">
                       <button
                         type="button"
-                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2"
+                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2  touch-action-manipulation"
                         onClick={onPlayAgain}
+                        onTouchStart={onPlayAgain}
                       >
                         Play Again
                       </button>
                       <button
                         type="button"
-                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2 mt-[-2px]"
+                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2 mt-[-2px]  touch-action-manipulation"
                         onClick={onGoHome}
+                        onTouchStart={onGoHome}
                       >
                         Go Home
                       </button>
@@ -76,3 +78,4 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
     </Transition>
   );
 };
+
