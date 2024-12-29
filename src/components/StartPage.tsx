@@ -3,7 +3,6 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 
 import TITLE from "@/assets/images/title.png";
-import Stars from "@/assets/images/stars.png";
 
 import Navbar from "./SpecialNavbar";
 import ShipSelector from "./ShipSelector";
@@ -35,11 +34,10 @@ const StartPage = () => {
 
   const startGame = () => {
     setIsLoading(true);
-    // Simulate loading time
     setTimeout(() => {
       setIsGameStarted(true);
       setIsLoading(false);
-    }, 9000); // 6 seconds loading time
+    }, 9000); // 9 seconds loading time
   };
 
   if (isLoading) {
@@ -52,11 +50,8 @@ const StartPage = () => {
 
   return (
     <>
-      {/* Removed the separate black background div */}
       <div className="flex relative bg-black max-w-md mx-auto max-h-screen pb-[16px] overflow-hidden flex-col items-center h-screen font-pixeboy border-smaller">
-        <ParticlesComponent />{" "}
-        {/* Moved ParticlesComponent inside the main div */}
-        <Navbar />
+        <ParticlesComponent /> <Navbar />
         <div className="flex relative items-center flex-col justify-between f-full">
           <Image
             src={TITLE}
@@ -89,14 +84,14 @@ const StartPage = () => {
 
               <div className="text-center flex flex-col text-[16px]">
                 <a
-                  href="#"
+                  href="/leaderboard"
                   className="text-skyblue_btn underline underline-offset-2"
                 >
                   VISIT LEADERBOARD
                 </a>
                 <a
-                  href="#"
-                  className="text-coralRed_btn cursor-pointer underline underline-offset-2 mt-[-5px]"
+                  href="/"
+                  className="text-coralRed_btn cursor-pointer underline underline-offset-2 mt-[-4px]"
                 >
                   GO BACK
                 </a>

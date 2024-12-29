@@ -75,7 +75,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   interface ExtendedP5 extends p5 {
     resetGameState: () => void;
   }
-  
+
   const sketch = useCallback(
     (p: ExtendedP5) => {
       p5Ref.current = p;
@@ -161,6 +161,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const createStars = () => {
+        p.stroke(255, 0, 0);
         for (let i = 0; i < 100; i++) {
           stars.push({
             x: p.random(p.width),
@@ -248,7 +249,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const drawBackground = () => {
-        p.background(10, 10, 15);
+        p.background(0, 0, 0);
       };
 
       const drawSpaceship = () => {
@@ -673,12 +674,14 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           </div>
         </div>
       </div>
-      <GameOverModal
-        isOpen={showGameOverModal}
-        score={finalScore}
-        onPlayAgain={resetGame}
-        onGoHome={() => window.location.reload()}
-      />
+      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+        <GameOverModal
+          isOpen={showGameOverModal}
+          score={finalScore}
+          onPlayAgain={resetGame}
+          onGoHome={() => window.location.reload()}
+        />
+      </div>
     </div>
   );
 };
