@@ -151,7 +151,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       p.preload = () => {
         spaceshipRef.current = p.loadImage(selectedShip.src);
-        enemySpaceshipImg = p.loadImage("/enemy5.gif");
+        enemySpaceshipImg = p.loadImage("/enemy.gif");
         explosionImg = p.loadImage("/explosion.png");
         asteroidImg = p.loadImage("/asteroid.png");
         powerUpImg = p.loadImage("/powerup.gif");
@@ -537,7 +537,7 @@ const drawPowerUpMessage = () => {
     const isBlinking = Math.floor(powerUpMessageTimer / 10) % 2 === 0; // Alternate blinking
     if (isBlinking) {
       p.fill(255, 255, 0); // Yellow color
-      p.textSize(27);
+      p.textSize(28);
       p.textAlign(p.CENTER, p.TOP);
       p.text(powerUpMessage, p.width / 2, 100);
     }
