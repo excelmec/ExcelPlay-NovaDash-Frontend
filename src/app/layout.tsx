@@ -9,7 +9,7 @@ const Pixeboy = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Excel Play Games",
+  title: "Excel Play 2024",
   description: "Online gaming platform from Excel 2024",
 };
 
