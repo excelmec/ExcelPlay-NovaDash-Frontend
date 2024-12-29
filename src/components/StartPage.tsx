@@ -26,9 +26,16 @@ const StartPage = () => {
 
   // Function to play the click sound
   const playClickSound = () => {
-    const audio = new Audio("/click.mp3"); // Accessing the file in the public folder
-    audio.play();
+    const audio = new Audio("/click.mp3");
+    audio.play().catch((error) => {
+      if (error.name === "NotAllowedError") {
+        console.warn("Audio playback failed due to autoplay restrictions. The user needs to interact with the document first.");
+      } else {
+        console.error("Audio playback failed:", error);
+      }
+    });
   };
+  
 
   const handleShipSelect = (ship: {
     src: string;
