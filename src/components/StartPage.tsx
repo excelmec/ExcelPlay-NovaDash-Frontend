@@ -24,15 +24,23 @@ const StartPage = () => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Function to play the click sound
+  const playClickSound = () => {
+    const audio = new Audio("/click.mp3"); // Accessing the file in the public folder
+    audio.play();
+  };
+
   const handleShipSelect = (ship: {
     src: string;
     alt: string;
     name: string;
   }) => {
     setSelectedShip(ship);
+    playClickSound(); // Play sound when selecting a ship
   };
 
   const startGame = () => {
+    playClickSound(); // Play sound on the Start Game button click
     setIsLoading(true);
     setTimeout(() => {
       setIsGameStarted(true);
@@ -86,12 +94,14 @@ const StartPage = () => {
                 <a
                   href="/leaderboard"
                   className="text-skyblue_btn underline underline-offset-2"
+                  onClick={playClickSound}
                 >
                   VISIT LEADERBOARD
                 </a>
                 <a
                   href="/"
                   className="text-coralRed_btn cursor-pointer underline underline-offset-2 mt-[-4px]"
+                  onClick={playClickSound}
                 >
                   GO BACK
                 </a>
