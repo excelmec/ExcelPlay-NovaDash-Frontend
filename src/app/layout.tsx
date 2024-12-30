@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 const Pixeboy = localFont({
-  src: "../assets/fonts/Pixeboy.ttf",
+  src: "../../public/fonts/Pixeboy.ttf",
   variable: "--font-pixeboy",
   weight: "400",
 });
