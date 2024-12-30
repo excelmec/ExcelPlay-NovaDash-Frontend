@@ -96,6 +96,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let explosionImg: p5.Image;
       let asteroidImg: p5.Image;
       let powerUpImg: p5.Image;
+      let slowPowerUpImg: p5.Image;
+      let multiplierPowerUpImg: p5.Image;
+      let shieldPowerUpImg: p5.Image;
       let retroFont: p5.Font;
       let points = 0;
       let gameOver = false;
@@ -155,6 +158,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         explosionImg = p.loadImage("/images/explosion.webp");
         asteroidImg = p.loadImage("/images/asteroid.webp");
         powerUpImg = p.loadImage("/powerup.gif");
+        slowPowerUpImg = p.loadImage('/powerups/slowdown.webp');
+        multiplierPowerUpImg = p.loadImage('/powerups/score2x.webp');
+        shieldPowerUpImg = p.loadImage('/powerups/shield.webp');
         retroFont = p.loadFont("/fonts/Pixeboy.ttf");
       };
 
@@ -264,7 +270,17 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           const x =
             (gsap.getProperty(spaceshipRef.current, "x") as number) ||
             lanes[spaceshipLaneIndex];
-          
+    
+          // Draw the shield ellipse before the spaceship
+          if (activePowerUp === "shield") {
+            p.push();
+            p.noFill();
+            p.stroke(0, 100, 255, 150); // Blue color with some transparency
+            p.strokeWeight(3);
+            p.ellipse(x, p.height - 50, 100, 120); // Ellipse slightly larger than the spaceship
+            p.pop();
+          }
+    
           if (collisionState && p.frameCount % 10 < 5) {
             p.tint(255, 0, 0); // Red tint
           }
@@ -336,13 +352,31 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
 
         powerUps.forEach((powerUp, index) => {
-          p.image(powerUpImg, powerUp.x, powerUp.y, 30, 30);
+          let powerUpImage;
+          switch (powerUp.type) {
+            case "slow":
+              powerUpImage = slowPowerUpImg;
+              break;
+            case "multiplier":
+              powerUpImage = multiplierPowerUpImg;
+              break;
+            case "shield":
+              powerUpImage = shieldPowerUpImg;
+              break;
+            default:
+              powerUpImage = null;
+          }
+          
+          if (powerUpImage) {
+            const yOffset = Math.sin(p.frameCount * 0.1) * 5; // Creates a smooth up-and-down movement
+            p.image(powerUpImage, powerUp.x, powerUp.y + yOffset, 50, 50); // Increased size from 30x30 to 50x50
+          }
           powerUp.y += baseSpeed * speedMultiplier * 0.5;
 
           if (
-            powerUp.y > p.height - 70 &&
-            powerUp.y < p.height - 30 &&
-            powerUp.x === lanes[spaceshipLaneIndex]
+            powerUp.y + 25 > p.height - 70 &&
+            powerUp.y - 25 < p.height - 30 &&
+            Math.abs(powerUp.x - lanes[spaceshipLaneIndex]) < 25
           ) {
             activatePowerUp(powerUp.type);
             powerUps.splice(index, 1);
@@ -497,8 +531,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             speedMultiplier *= 0.5;
             break;
           case "multiplier":
-            break;
           case "shield":
+            // No additional action needed
             break;
         }
       };
@@ -508,8 +542,13 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           case "slow":
             speedMultiplier *= 2;
             break;
+          case "multiplier":
+          case "shield":
+            // No additional action needed
+            break;
         }
         activePowerUp = null;
+        powerUpDuration = 0;
       };
 
       const getPowerUpDisplayText = (powerUp: string | null): string => {
@@ -525,28 +564,26 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
 
-    
+      const showPowerUpMessage = (message: string) => {
+        powerUpMessage = message;
+        powerUpMessageTimer = 120; // 3 seconds at 60 FPS
+      };
 
-const showPowerUpMessage = (message: string) => {
-  powerUpMessage = message;
-  powerUpMessageTimer = 120; // 3 seconds at 60 FPS
-};
-
-const drawPowerUpMessage = () => {
-  if (powerUpMessage && powerUpMessageTimer > 0) {
-    const isBlinking = Math.floor(powerUpMessageTimer / 10) % 2 === 0; // Alternate blinking
-    if (isBlinking) {
-      p.fill(255, 255, 0); // Yellow color
-      p.textSize(28);
-      p.textAlign(p.CENTER, p.TOP);
-      p.text(powerUpMessage, p.width / 2, 100);
-    }
-    powerUpMessageTimer--;
-    if (powerUpMessageTimer <= 0) {
-      powerUpMessage = ""; // Clear the message after 3 seconds
-    }
-  }
-};
+      const drawPowerUpMessage = () => {
+        if (powerUpMessage && powerUpMessageTimer > 0) {
+          const isBlinking = Math.floor(powerUpMessageTimer / 10) % 2 === 0; // Alternate blinking
+          if (isBlinking) {
+            p.fill(255, 255, 0); // Yellow color
+            p.textSize(28);
+            p.textAlign(p.CENTER, p.TOP);
+            p.text(powerUpMessage, p.width / 2, 100);
+          }
+          powerUpMessageTimer--;
+          if (powerUpMessageTimer <= 0) {
+            powerUpMessage = ""; // Clear the message after 3 seconds
+          }
+        }
+      };
 
 
       const updateAndDrawHUD = () => {
