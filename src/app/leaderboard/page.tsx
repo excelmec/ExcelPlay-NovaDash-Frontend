@@ -1,7 +1,3 @@
-// pages/leaderboard.tsx
-import { Fragment } from 'react';
-import { useState } from 'react';
-
 interface Player {
   rank: number;
   name: string;
