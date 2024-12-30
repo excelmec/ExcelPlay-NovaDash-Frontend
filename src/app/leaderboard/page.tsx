@@ -1,3 +1,7 @@
+"use client"
+// app/leaderboard/page.tsx
+import { useRouter } from 'next/navigation';
+
 interface Player {
   rank: number;
   name: string;
@@ -13,8 +17,16 @@ const players: Player[] = [
 ];
 
 export default function Leaderboard() {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+      <button
+        onClick={() => router.push('/')}
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Back to Home
+      </button>
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Leaderboard</h1>
       <div className="w-full max-w-4xl bg-white shadow-md rounded-lg overflow-hidden">
         <table className="w-full text-left border-collapse">
