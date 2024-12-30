@@ -151,11 +151,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       p.preload = () => {
         spaceshipRef.current = p.loadImage(selectedShip.src);
-        enemySpaceshipImg = p.loadImage("/enemy.gif");
-        explosionImg = p.loadImage("/explosion.png");
-        asteroidImg = p.loadImage("/asteroid.png");
+        enemySpaceshipImg = p.loadImage("/ships/enemy.gif");
+        explosionImg = p.loadImage("/images/explosion.webp");
+        asteroidImg = p.loadImage("/images/asteroid.webp");
         powerUpImg = p.loadImage("/powerup.gif");
-        retroFont = p.loadFont("/Pixeboy.ttf");
+        retroFont = p.loadFont("/fonts/Pixeboy.ttf");
       };
 
       p.setup = () => {
@@ -656,7 +656,7 @@ const drawPowerUpMessage = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const audio = new Audio("/background-track.mp3");
+      const audio = new Audio("/audio/background-track.mp3");
       audio.loop = true;
       setBackgroundMusic(audio);
     }
@@ -674,9 +674,9 @@ const drawPowerUpMessage = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setShootSound(new Audio("/shoot.mp3"));
-      setGameOverSound(new Audio("/game-over.mp3"));
-      setPowerUpSound(new Audio("/powerup.mp3"));
+      setShootSound(new Audio("/audio/shoot.mp3"));
+      setGameOverSound(new Audio("/audio/game-over.mp3"));
+      setPowerUpSound(new Audio("/audio/powerup.mp3"));
     }
   }, []);
 
