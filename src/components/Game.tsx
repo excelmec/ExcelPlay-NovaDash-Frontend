@@ -91,7 +91,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let obstacles: { x: number; y: number; type: string }[] = [];
       let bullets: { x: number; y: number; isEnemy: boolean }[] = [];
       let enemySpaceships: { x: number; y: number; lane: number }[] = [];
-      let explosions: { x: number; y: number; frame: number; size: number }[] = [];
+      let explosions: { x: number; y: number; frame: number; size: number; isShieldHit?: boolean }[] = [];
       let enemySpaceshipImg: p5.Image;
       let explosionImg: p5.Image;
       let asteroidImg: p5.Image;
@@ -284,7 +284,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           if (collisionState && p.frameCount % 10 < 5) {
             p.tint(255, 0, 0); // Red tint
           }
-          p.image(spaceshipRef.current, x, p.height - 50, 80, 100);
+          p.image(spaceshipRef.current, x, p.height - 70, 80, 100);
           p.noTint(); // Reset tint
         }
       };
@@ -473,11 +473,18 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               { x: lanes[spaceshipLaneIndex], y: p.height - 50 },
               { x: bullet.x, y: bullet.y },
               20
-            ) && !collisionState) {
-              collisionState = true;
-              collisionTimer = COLLISION_DURATION;
-              createExplosion(lanes[spaceshipLaneIndex], p.height - 50);
-              bullets.splice(index, 1);
+            )) {
+              if (activePowerUp === "shield") {
+                // Create a shield hit effect
+                createShieldHitEffect(lanes[spaceshipLaneIndex], p.height - 50);
+                bullets.splice(index, 1);
+                deactivatePowerUp();
+              } else if (!collisionState) {
+                collisionState = true;
+                collisionTimer = COLLISION_DURATION;
+                createExplosion(lanes[spaceshipLaneIndex], p.height - 50);
+                bullets.splice(index, 1);
+              }
             }
           }
         });
@@ -489,26 +496,39 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         if (shootCooldown > 0) shootCooldown--;
       };
 
-      const createExplosion = (x: number, y: number) => {
+      const createExplosion = (x: number, y: number, isShieldHit?: boolean) => {
         explosions.push({
           x: x,
           y: y,
           frame: 0,
-          size: 60,
+          size: isShieldHit ? 100 : 60,
+          isShieldHit: isShieldHit
         });
       };
+
+      const createShieldHitEffect = (x: number, y: number) => {
+        createExplosion(x, y, true);
+      };
+
 
       const handleExplosions = () => {
         explosions.forEach((explosion, index) => {
           const alpha = p.map(explosion.frame, 0, 30, 255, 0);
           p.tint(255, alpha);
-          p.image(
-            explosionImg,
-            explosion.x,
-            explosion.y,
-            explosion.size,
-            explosion.size
-          );
+          if (explosion.isShieldHit) {
+            p.noFill();
+            p.stroke(0, 100, 255, alpha);
+            p.strokeWeight(3);
+            p.ellipse(explosion.x, explosion.y, explosion.size, explosion.size * 1.2);
+          } else {
+            p.image(
+              explosionImg,
+              explosion.x,
+              explosion.y,
+              explosion.size,
+              explosion.size
+            );
+          }
           p.noTint();
           explosion.frame++;
           if (explosion.frame > 30) {
