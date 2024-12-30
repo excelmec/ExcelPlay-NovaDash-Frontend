@@ -14,7 +14,6 @@ interface GameProps {
 }
 
 const Game: React.FC<GameProps> = ({ selectedShip }) => {
-  const router = useRouter();
   const gameRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<ExtendedP5 | null>(null);
   const spaceshipRef = useRef<p5.Image | null>(null);
@@ -270,24 +269,33 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           const x =
             (gsap.getProperty(spaceshipRef.current, "x") as number) ||
             lanes[spaceshipLaneIndex];
-    
+      
+          // Adjust vertical position by reducing the y-coordinate (e.g., `p.height - 70`)
+          const spaceshipY = p.height - 70;
+      
           // Draw the shield ellipse before the spaceship
           if (activePowerUp === "shield") {
             p.push();
             p.noFill();
             p.stroke(0, 100, 255, 150); // Blue color with some transparency
             p.strokeWeight(3);
-            p.ellipse(x, p.height - 50, 100, 120); // Ellipse slightly larger than the spaceship
+            p.ellipse(x, spaceshipY, 100, 120); // Ellipse slightly larger than the spaceship
             p.pop();
           }
-    
+      
+          // Apply red tint during collision
           if (collisionState && p.frameCount % 10 < 5) {
             p.tint(255, 0, 0); // Red tint
           }
-          p.image(spaceshipRef.current, x, p.height - 70, 80, 100);
-          p.noTint(); // Reset tint
+      
+          // Draw the spaceship at the updated position
+          p.image(spaceshipRef.current, x, spaceshipY, 80, 100);
+      
+          // Reset tint
+          p.noTint();
         }
       };
+      
 
       const checkCollision = (
         obj1: { x: number; y: number },
