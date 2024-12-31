@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import p5 from "p5";
-import gsap from "gsap";
+// import gsap from "gsap"; // Removed gsap import
 import Image from "next/image";
 import SoundOn from "@/assets/icons/sound_on.svg";
 import SoundOff from "@/assets/icons/sound_off.svg";
@@ -28,6 +28,26 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const [score, setScore] = useState("0000000000");
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [spaceshipX, setSpaceshipX] = useState(0);
+  const [targetX, setTargetX] = useState(0);
+  const [animationProgress, setAnimationProgress] = useState(1);
+
+  const easeOutQuad = (t: number) => t * (2 - t);
+
+  const updateSpaceshipPosition = useCallback(() => {
+    if (animationProgress < 1) {
+      const easedProgress = easeOutQuad(animationProgress);
+      const newX = spaceshipX + (targetX - spaceshipX) * easedProgress;
+      setSpaceshipX(newX);
+      setAnimationProgress(animationProgress + 0.1);
+    }
+  }, [animationProgress, spaceshipX, targetX]);
+
+  useEffect(() => {
+    if (animationProgress < 1) {
+      requestAnimationFrame(updateSpaceshipPosition);
+    }
+  }, [animationProgress, updateSpaceshipPosition]);
 
   const toggleSoundWithoutRestart = useCallback(() => {
     isSoundOnRef.current = !isSoundOnRef.current;
@@ -171,7 +191,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         p.textFont(retroFont);
         createStars();
         lanes = lanePercentages.map(percentage => (percentage / 100) * p.width);
-        gsap.set(spaceshipRef.current, { x: lanes[spaceshipLaneIndex] });
+        // gsap.set(spaceshipRef.current, { x: lanes[spaceshipLaneIndex] }); // Removed gsap
       };
 
       const createStars = () => {
@@ -275,32 +295,24 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const drawSpaceship = () => {
         if (spaceshipRef.current) {
-          const x =
-            (gsap.getProperty(spaceshipRef.current, "x") as number) ||
-            lanes[spaceshipLaneIndex];
-      
-          // Adjust vertical position by reducing the y-coordinate (e.g., `p.height - 70`)
+          const x = spaceshipX || lanes[spaceshipLaneIndex];
           const spaceshipY = p.height - 70;
-      
-          // Draw the shield ellipse before the spaceship
+
           if (activePowerUp === "shield") {
             p.push();
             p.noFill();
-            p.stroke(0, 100, 255, 150); // Blue color with some transparency
+            p.stroke(0, 100, 255, 150);
             p.strokeWeight(3);
-            p.ellipse(x, spaceshipY, 100, 120); // Ellipse slightly larger than the spaceship
+            p.ellipse(x, spaceshipY, 100, 120);
             p.pop();
           }
-      
-          // Apply red tint during collision
+
           if (collisionState && p.frameCount % 10 < 5) {
-            p.tint(255, 0, 0); // Red tint
+            p.tint(255, 0, 0);
           }
-      
-          // Draw the spaceship at the updated position
+
           p.image(spaceshipRef.current, x, spaceshipY, 80, 100);
-      
-          // Reset tint
+
           p.noTint();
         }
       };
@@ -662,12 +674,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         );
         if (newLaneIndex !== spaceshipLaneIndex) {
           const currentX = lanes[spaceshipLaneIndex];
-          const targetX = lanes[newLaneIndex];
-          gsap.to(spaceshipRef.current, {
-            x: targetX,
-            duration: 0.3,
-            ease: "power1.out",
-          });
+          const newTargetX = lanes[newLaneIndex];
+          setSpaceshipX(currentX);
+          setTargetX(newTargetX);
+          setAnimationProgress(0);
           spaceshipLaneIndex = newLaneIndex;
         }
       };
@@ -730,6 +740,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       shootSound,
       powerUpSound,
       resetGame,
+      updateSpaceshipPosition
     ]
   );
 
