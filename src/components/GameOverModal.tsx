@@ -18,7 +18,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => {}}>
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center py-10 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -78,4 +78,3 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
     </Transition>
   );
 };
-

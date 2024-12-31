@@ -7,7 +7,7 @@ import gsap from "gsap";
 import Image from "next/image";
 import SoundOn from "@/assets/icons/sound_on.svg";
 import SoundOff from "@/assets/icons/sound_off.svg";
-import { GameOverModal } from "@/components/GameOverModel";
+import { GameOverModal } from "@/components/GameOverModal";
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -81,7 +81,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       p5Ref.current = p;
       const isClient = typeof window !== "undefined";
       let spaceshipLaneIndex = 1;
-      const lanes = [100, 200, 300, 400];
+      const lanePercentages = [20, 40, 60, 80]; // Percentages for lane positions
+      let lanes: number[] = [];
       const baseSpeed = 2;
       let speedMultiplier = 1;
       const MAX_BULLET_SPEED = 20;
@@ -94,7 +95,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       let enemySpaceshipImg: p5.Image;
       let explosionImg: p5.Image;
       let asteroidImg: p5.Image;
-      let powerUpImg: p5.Image;
       let slowPowerUpImg: p5.Image;
       let multiplierPowerUpImg: p5.Image;
       let shieldPowerUpImg: p5.Image;
@@ -135,6 +135,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         powerUpMessage = null;
         powerUpMessageTimer = 0;
         createStars();
+        lanes = lanePercentages.map(percentage => (percentage / 100) * p.width);
       };
 
       const handleKeyPress = (event: KeyboardEvent) => {
@@ -163,10 +164,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       p.setup = () => {
-        p.createCanvas(500, p.windowHeight);
+        p.createCanvas(400, p.windowHeight - 82);
         p.imageMode(p.CENTER);
         p.textFont(retroFont);
         createStars();
+        lanes = lanePercentages.map(percentage => (percentage / 100) * p.width);
         gsap.set(spaceshipRef.current, { x: lanes[spaceshipLaneIndex] });
       };
 
@@ -332,7 +334,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           obstacle.y += baseSpeed * speedMultiplier * 0.5;
 
           if (checkCollision(
-            { x: lanes[spaceshipLaneIndex], y: p.height - 50 },
+            { x: lanes[spaceshipLaneIndex], y: p.height - 40 },
             { x: obstacle.x, y: obstacle.y },
             30
           )) {
@@ -401,8 +403,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const handleEnemySpaceships = () => {
-        if (p.frameCount % 120 === 0 && enemySpaceships.length === 0) {
-          const availableLanes = [0, 1, 2].filter(
+        if(p.frameCount % 120 === 0 && enemySpaceships.length === 0) {
+          const availableLanes = [0, 1, 2, 3].filter(
             (lane) => !enemySpaceships.some((enemy) => enemy.lane === lane)
           );
 
@@ -434,7 +436,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
           if (checkCollision(
             { x: lanes[spaceshipLaneIndex], y: p.height - 50 },
-            { x:enemy.x, y: enemy.y },
+            { x: enemy.x, y: enemy.y },
             45
           ) && !collisionState) {
             collisionState = true;
@@ -482,7 +484,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               20
             )) {
               if (activePowerUp === "shield") {
-                // Create a shield hit effect
                 createShieldHitEffect(lanes[spaceshipLaneIndex], p.height - 50);
                 bullets.splice(index, 1);
                 deactivatePowerUp();
@@ -516,7 +517,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       const createShieldHitEffect = (x: number, y: number) => {
         createExplosion(x, y, true);
       };
-
 
       const handleExplosions = () => {
         explosions.forEach((explosion, index) => {
@@ -612,7 +612,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       };
 
-
       const updateAndDrawHUD = () => {
         const scoreMultiplier = activePowerUp === "multiplier" ? 2 : 1;
         const newScore = Math.floor(points * scoreMultiplier)
@@ -656,7 +655,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           gsap.to(spaceshipRef.current, {
             x: targetX,
             duration: 0.3,
-            ease: "power2.out",
+            ease: "power1.out",
           });
           spaceshipLaneIndex = newLaneIndex;
         }
@@ -698,6 +697,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           }
         }
         return false;
+      };
+
+      p.windowResized = () => {
+        p.resizeCanvas(400, p.windowHeight - 82);
+        lanes = lanePercentages.map(percentage => (percentage / 100) * p.width);
       };
 
       return () => {
@@ -755,9 +759,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   }, [sketch, resetGame]);
 
   return (
-    <div className="w-full h-screen flex items-center justify-center relative">
-      <div ref={gameRef} className="relative max-w-[500px] h-full w-full">
-        <div className="w-full navBorder max-h-[82px] h-full absolute z-10 top-0">
+    <div className="w-full h-screen flex flex-col items-center justify-center relative">
+      <div ref={gameRef} className="relative justify-center items-center w-[400px] h-full">
+        <div className="w-[400px] navBorder max-h-[82px] h-full absolute z-10 top-0">
           <div className="flex items-center justify-between px-[21px] py-2 backdrop-blur-[12px] w-full max-h-[96px] h-full navStyle ">
             <div className="font-pixeboy text-[36px] text-white pt-[6px]">
               {score}
@@ -776,13 +780,15 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           </div>
         </div>
       </div>
-      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-        <GameOverModal
-          isOpen={showGameOverModal}
-          score={finalScore}
-          onPlayAgain={resetGame}
-          onGoHome={() => window.location.reload()}
-        />
+      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
+        <div className="pointer-events-auto w-full">
+          <GameOverModal
+            isOpen={showGameOverModal}
+            score={finalScore}
+            onPlayAgain={resetGame}
+            onGoHome={() => window.location.reload()}
+          />
+        </div>
       </div>
     </div>
   );
