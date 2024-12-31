@@ -310,7 +310,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const handleObstacles = () => {
-        if (p.frameCount % 90 === 0) {
+        if (p.frameCount % 120 === 0) { // Changed from 90 to 120
           const laneIndex = p.floor(p.random(0, lanes.length));
           const newAsteroid = {
             x: lanes[laneIndex],
@@ -403,7 +403,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const handleEnemySpaceships = () => {
-        if(p.frameCount % 120 === 0 && enemySpaceships.length === 0) {
+        if(p.frameCount % 180 === 0 && enemySpaceships.length === 0) { // Changed from 120 to 180
           const availableLanes = [0, 1, 2, 3].filter(
             (lane) => !enemySpaceships.some((enemy) => enemy.lane === lane)
           );
