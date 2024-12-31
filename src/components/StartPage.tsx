@@ -6,6 +6,8 @@ import Navbar from "./SpecialNavbar";
 import ShipSelector from "./ShipSelector";
 import { ShipDetails } from "@/constants";
 import ParticlesComponent from "./ParticlesBackground";
+import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
+
 
 const Game = dynamic(() => import("./Game"), { ssr: false });
 const Loading = dynamic(() => import("./Loading"), { ssr: false });
@@ -15,6 +17,49 @@ const StartPage = () => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("accessToken");
+    window.location.href = "/";
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        await refreshTheAccessToken();
+      } catch (error) {
+        console.error("Periodic token refresh failed:", error);
+      }
+    }, 15000); 
+
+    return () => clearInterval(interval); 
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+
+      // Extract refresh token from URL
+      checkRefreshFromUrl();
+
+      // Attempt to refresh access token
+      const accessToken = await refreshTheAccessToken();
+      if (accessToken) {
+        console.log("Access Token:", accessToken);
+        setIsLoggedIn(true);
+      } else {
+        console.log("No access token found. User not logged in.");
+        setIsLoggedIn(false);
+      }
+
+      setLoading(false);
+    };
+
+    init();
+  }, []);
   // Use refs to store audio objects to avoid unnecessary re-renders
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
   const startClickSoundRef = useRef<HTMLAudioElement | null>(null);
