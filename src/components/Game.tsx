@@ -113,11 +113,13 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       const COLLISION_DURATION = 30; // 1 second at 60 fps
       let powerUpMessage: string | null = null;
       let powerUpMessageTimer = 0;
+      let originalSpeedMultiplier = 1;
       
 
       p.resetGameState = () => {
         spaceshipLaneIndex = 1;
         speedMultiplier = 1;
+        originalSpeedMultiplier = 1;
         obstacles = [];
         bullets = [];
         enemySpaceships = [];
@@ -184,7 +186,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const createPowerUp = () => {
-        if (p.random(1) < 0.05) {
+        if (p.random(1) < 0.1) { // Increased probability from 0.05 to 0.1
           const laneIndex = p.floor(p.random(0, lanes.length));
           const powerUpType = p.random(["slow", "multiplier", "shield"]);
           powerUps.push({
@@ -222,7 +224,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         );
 
         if (currentThreshold) {
-          speedMultiplier *= 1.5;
+          originalSpeedMultiplier *= 1.5;
+          if (activePowerUp !== "multiplier") {
+            speedMultiplier = originalSpeedMultiplier;
+          } else {
+            speedMultiplier = originalSpeedMultiplier * 2;
+          }
           lastSpeedIncreaseScore = currentThreshold;
         }
       };
@@ -356,7 +363,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const handlePowerUps = () => {
-        if (p.frameCount % 300 === 0) {
+        if (p.frameCount % 10 === 0) { // Changed from 300 to 150
           createPowerUp();
         }
 
@@ -546,7 +553,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const activatePowerUp = (type: string) => {
         activePowerUp = type;
-        powerUpDuration = 600;
+        powerUpDuration = 600; // 10 seconds for all power-ups
         if (powerUpSound && isSoundOnRef.current) {
           powerUpSound.currentTime = 0;
           powerUpSound.play();
@@ -558,6 +565,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             speedMultiplier *= 0.5;
             break;
           case "multiplier":
+            speedMultiplier = originalSpeedMultiplier * 2; // Double the speed multiplier
+            break;
           case "shield":
             // No additional action needed
             break;
@@ -570,6 +579,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             speedMultiplier *= 2;
             break;
           case "multiplier":
+            speedMultiplier = originalSpeedMultiplier; // Revert to the original speed multiplier
+            break;
           case "shield":
             // No additional action needed
             break;
@@ -583,7 +594,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           case "slow":
             return "SLOW TIME";
           case "multiplier":
-            return "2X SCORE";
+            return "2X SPEED";
           case "shield":
             return "SHIELD";
           default:
@@ -613,8 +624,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const updateAndDrawHUD = () => {
-        const scoreMultiplier = activePowerUp === "multiplier" ? 2 : 1;
-        const newScore = Math.floor(points * scoreMultiplier)
+        const newScore = Math.floor(points)
           .toString()
           .padStart(10, "0");
         setScore(newScore);
