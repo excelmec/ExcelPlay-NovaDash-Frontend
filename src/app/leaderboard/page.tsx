@@ -1,6 +1,7 @@
-"use client"
-// app/leaderboard/page.tsx
+'use client'
+import React from 'react';
 import { useRouter } from 'next/navigation';
+import { pixelFont } from "../../utils/fonts";
 
 interface Player {
   rank: number;
@@ -9,44 +10,68 @@ interface Player {
 }
 
 const players: Player[] = [
-  { rank: 1, name: 'Alice', score: 1200 },
-  { rank: 2, name: 'Bob', score: 1150 },
-  { rank: 3, name: 'Charlie', score: 1100 },
-  { rank: 4, name: 'Dave', score: 1050 },
-  { rank: 5, name: 'Eve', score: 1000 },
+  { rank: 1, name: 'HDN', score: 95924417 },
+  { rank: 2, name: 'CSI', score: 94735741 },
+  { rank: 3, name: 'JGV', score: 93911381 },
+  { rank: 4, name: 'AAA', score: 90662103 },
+  { rank: 5, name: 'AWC', score: 87815810 },
+  { rank: 6, name: 'IXV', score: 85040399 },
+  { rank: 7, name: 'OGX', score: 82362865 },
+  { rank: 8, name: 'DQE', score: 80294738 },
+  { rank: 9, name: 'VUS', score: 79436407 },
+  { rank: 10, name: 'KTB', score: 69358487 },
+  { rank: 11, name: 'HDV', score: 69135253 },
 ];
 
 export default function Leaderboard() {
   const router = useRouter();
 
+  const playSound = () => {
+    const audio = new Audio('/audio/click.mp3'); // Ensure the path is correct
+    audio.play();
+  };
+
+  const handleBackClick = () => {
+    playSound();
+    router.push('/');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      <button
-        onClick={() => router.push('/')}
-        className="mb-4 px-4 py-2 bg-black text-white rounded "
-      >
-        Back to Home
-      </button>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Leaderboard</h1>
-      <div className="w-full max-w-4xl bg-white shadow-md rounded-lg overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-              <th className="py-3 px-6">Rank</th>
-              <th className="py-3 px-6">Player Name</th>
-              <th className="py-3 px-6">Score</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-600 text-sm">
-            {players.map((player) => (
-              <tr key={player.rank} className="border-b border-gray-200 hover:bg-gray-100">
-                <td className="py-3 px-6">{player.rank}</td>
-                <td className="py-3 px-6">{player.name}</td>
-                <td className="py-3 px-6">{player.score}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className={`min-h-screen bg-black flex flex-col items-center p-6 ${pixelFont.variable}`}>
+      <div className="w-full max-w-2xl">
+        <button
+          onClick={handleBackClick}
+          className="mb-8 px-4 py-2 text-white font-pixel text-sm hover:text-yellow-400 transition-colors"
+        >
+          {'<'} BACK
+        </button>
+        
+        <h1 className="text-white font-pixel text-center text-4xl mb-12">
+          HIGH SCORES
+        </h1>
+
+        <div className="w-full grid grid-cols-[1fr_1fr_1.5fr] gap-4 text-white font-pixel">
+          <div className="text-center mb-6">RANK</div>
+          <div className="text-center mb-6">NAME</div>
+          <div className="text-center mb-6">SCORE</div>
+
+          {players.map((player) => (
+            <React.Fragment key={player.rank}>
+              <div className={`text-center ${player.rank === 1 ? 'text-yellow-400' : ''}`}>
+                {player.rank}
+                {player.rank === 1 ? 'ST' : 
+                  player.rank === 2 ? 'ND' : 
+                  player.rank === 3 ? 'RD' : 'TH'}
+              </div>
+              <div className={`text-center ${player.rank === 1 ? 'text-yellow-400' : ''}`}>
+                {player.name}
+              </div>
+              <div className={`text-center ${player.rank === 1 ? 'text-yellow-400' : ''}`}>
+                {player.score}
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </div>
   );

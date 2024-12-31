@@ -18,6 +18,7 @@ const config: Config = {
       },
       fontFamily: {
         pixeboy: ['"Pixeboy"', 'sans-serif'],
+        pixel: ['var(--font-pixel)', 'monospace'],
       },
     },
   },
