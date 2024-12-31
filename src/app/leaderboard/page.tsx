@@ -45,7 +45,7 @@ export default function Leaderboard() {
 
   return (
     <div className={`min-h-screen bg-black flex flex-col items-center p-6 ${pixelFont.variable}`}>
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-[480px]">
         <button
           onClick={handleBackClick}
           className="mb-8 px-4 py-2 text-white font-pixel text-sm hover:text-yellow-400 transition-colors"
