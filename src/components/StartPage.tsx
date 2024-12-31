@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -18,13 +17,59 @@ const StartPage = () => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("accessToken");
+    window.location.href = "/";
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        await refreshTheAccessToken();
+      } catch (error) {
+        console.error("Periodic token refresh failed:", error);
+      }
+    }, 15000); 
+
+    return () => clearInterval(interval); 
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+
+      // Extract refresh token from URL
+      checkRefreshFromUrl();
+
+      // Attempt to refresh access token
+      const accessToken = await refreshTheAccessToken();
+      if (accessToken) {
+        console.log("Access Token:", accessToken);
+        setIsLoggedIn(true);
+      } else {
+        console.log("No access token found. User not logged in.");
+        setIsLoggedIn(false);
+      }
+
+      setLoading(false);
+    };
+
+    init();
+  }, []);
+  // Use refs to store audio objects to avoid unnecessary re-renders
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
   const startClickSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // Initialize audio objects
     clickSoundRef.current = new Audio("/audio/click.mp3");
     startClickSoundRef.current = new Audio("/audio/startclick.mp3");
 
+    // Cleanup audio objects
     return () => {
       clickSoundRef.current?.pause();
       startClickSoundRef.current?.pause();
@@ -33,35 +78,29 @@ const StartPage = () => {
     };
   }, []);
 
-  const playSound = useCallback(
-    (audioRef: React.RefObject<HTMLAudioElement>) => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch((error) => {
-          if (error.name === "NotAllowedError") {
-            console.warn(
-              "Audio playback failed due to autoplay restrictions. User interaction is required."
-            );
-          } else {
-            console.error("Audio playback failed:", error);
-          }
-        });
-      }
-    },
-    []
-  );
+  // Reusable function to play audio
+  const playSound = useCallback((audioRef: React.RefObject<HTMLAudioElement>) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0; // Reset the audio to start
+      audioRef.current.play().catch((error) => {
+        if (error.name === "NotAllowedError") {
+          console.warn(
+            "Audio playback failed due to autoplay restrictions. User interaction is required."
+          );
+        } else {
+          console.error("Audio playback failed:", error);
+        }
+      });
+    }
+  }, []);
 
-  const handleShipSelect = (ship: {
-    src: string;
-    alt: string;
-    name: string;
-  }) => {
+  const handleShipSelect = (ship: { src: string; alt: string; name: string }) => {
     setSelectedShip(ship);
-    playSound(clickSoundRef);
+    playSound(clickSoundRef); // Play sound when selecting a ship
   };
 
   const startGame = () => {
-    playSound(startClickSoundRef);
+    playSound(startClickSoundRef); // Play the Start Game sound
     setIsLoading(true);
     setTimeout(() => {
       setIsGameStarted(true);

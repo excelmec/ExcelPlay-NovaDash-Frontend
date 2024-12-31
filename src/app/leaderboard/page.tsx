@@ -1,30 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Player {
   rank: number;
   name: string;
   score: number;
+  profilePicUrl: string;
 }
 
-const players: Player[] = [
-  { rank: 1, name: "Benjamin Franklin", score: 95924417 },
-  { rank: 2, name: "Isaac Newton", score: 94735741 },
-  { rank: 3, name: "Albert Einstein", score: 93911381 },
-  { rank: 4, name: "Nikola Tesla", score: 90662103 },
-  { rank: 5, name: "Marie Curie", score: 87815810 },
-  { rank: 6, name: "Galileo Galilei", score: 85040399 },
-  { rank: 7, name: "Ada Lovelace", score: 82362865 },
-  { rank: 8, name: "Leonardo da Vinci", score: 80294738 },
-  { rank: 9, name: "Charles Darwin", score: 79436407 },
-  { rank: 10, name: "Alan Turing", score: 69358487 },
-  { rank: 11, name: "Stephen Hawking", score: 69135253 },
-  { rank: 476, name: "AADITHYA MADHAV VALLATHERIL SIDHAN", score: 4536344 },
-];
-
 export default function Leaderboard() {
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const playSound = () => {
@@ -38,11 +27,32 @@ export default function Leaderboard() {
   };
 
   const getRankColor = (rank: number) => {
-    if (rank === 1) return "text-[#FFD700]"; // 1st
-    if (rank === 2) return "text-[#00FFFF]"; // 2nd
-    if (rank === 3) return "text-[#FF00AA]"; // 3rd
+    if (rank === 1) return "text-[#FFD700]"; // Gold
+    if (rank === 2) return "text-[#00FFFF]"; // Cyan
+    if (rank === 3) return "text-[#FF00AA]"; // Pink
     return ""; // Default color for others
   };
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const response = await fetch(
+          "https://space-shooter-nfxj.onrender.com/doodle/ranklist"
+        );
+        const data = await response.json();
+        setPlayers(data.ranklist || []); // Extract the ranklist
+      } catch (error) {
+        setError("Failed to load leaderboard. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPlayers();
+  }, []);
+
+  if (isLoading) return <div className="text-white">Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div
