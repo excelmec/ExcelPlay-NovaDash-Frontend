@@ -156,7 +156,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         enemySpaceshipImg = p.loadImage("/ships/enemy.gif");
         explosionImg = p.loadImage("/images/explosion.webp");
         asteroidImg = p.loadImage("/images/asteroid.webp");
-        powerUpImg = p.loadImage("/powerup.gif");
         slowPowerUpImg = p.loadImage('/powerups/slowdown.webp');
         multiplierPowerUpImg = p.loadImage('/powerups/score2x.webp');
         shieldPowerUpImg = p.loadImage('/powerups/shield.webp');
