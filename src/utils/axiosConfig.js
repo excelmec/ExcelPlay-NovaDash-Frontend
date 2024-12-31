@@ -1,7 +1,8 @@
 import axios from "axios";
 import { refreshTheAccessToken } from "./authUtils";
 
-const ACC_BACKEND_BASE_URL = process.env.REACT_APP_ACC_BACKEND_BASE_URL;
+const ACC_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_ACC_BACKEND_BASE_URL;
+console.log("ACC_BACKEND_BASE_URL:", ACC_BACKEND_BASE_URL);
 
 // Axios instance for authentication backend
 export const axiosAccPublic = axios.create({
