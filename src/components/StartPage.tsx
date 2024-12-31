@@ -7,8 +7,7 @@ import Navbar from "./SpecialNavbar";
 import ShipSelector from "./ShipSelector";
 import { ShipDetails } from "@/constants";
 import ParticlesComponent from "./ParticlesBackground";
-import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
-
+import Controls_Guide from "@/assets/images/controls_guide.webp";
 
 const Game = dynamic(() => import("./Game"), { ssr: false });
 const Loading = dynamic(() => import("./Loading"), { ssr: false });
@@ -146,21 +145,21 @@ const StartPage = () => {
           </div>
 
           <div className="flex flex-col gap-[27px] mt-[-8px]">
-            <div className="flex justify-center gap-[6px] items-center flex-col text-[18px]">
+            <div className="flex justify-center gap-[6px] items-center flex-col text-[19px]">
               <div className="text-center flex flex-col text-cherryPink_text">
                 <p>YOUR RANK : 20XX</p>
                 <p className="mt-[-8px]">YOUR HIGH SCORE : 43XX</p>
               </div>
 
-              <div className="text-center flex flex-col text-[16px]">
+              <div className="text-center flex flex-col text-[17px]">
                 <a
                   href="/leaderboard"
-                  className="text-skyblue_btn underline underline-offset-2"
+                  className="text-skyblue_btn underline underline-offset-2 text-[17px]"
                 >
                   VISIT LEADERBOARD
                 </a>
                 <a
-                  href="/"
+                  href="https://play.excelmec.org"
                   className="text-coralRed_btn cursor-pointer underline underline-offset-2 mt-[-4px]"
                 >
                   GO BACK
@@ -174,6 +173,8 @@ const StartPage = () => {
               </button>
             </div>
           </div>
+
+          <Image src={Controls_Guide} alt="swipe/ ← → to move & tap / space to shoot" className="max-w-[160px] mt-[40px] mb-[20px]" />
         </div>
       </div>
     </div>
