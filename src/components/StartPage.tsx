@@ -8,6 +8,7 @@ import ShipSelector from "./ShipSelector";
 import { ShipDetails } from "@/constants";
 import ParticlesComponent from "./ParticlesBackground";
 import Controls_Guide from "@/assets/images/controls_guide.webp";
+import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
 
 const Game = dynamic(() => import("./Game"), { ssr: false });
 const Loading = dynamic(() => import("./Loading"), { ssr: false });
