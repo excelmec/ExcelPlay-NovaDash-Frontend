@@ -217,7 +217,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const checkAndUpdateGameSpeed = () => {
-        const scoreThresholds = [1, 2, 4, 100, 200, 400, 800, 2500, 9000];
+        const scoreThresholds = [1, 2, 4, 200, 1500, 5500, 10000];
         const currentThreshold = scoreThresholds.find(
           (threshold) =>
             points >= threshold && threshold > lastSpeedIncreaseScore
