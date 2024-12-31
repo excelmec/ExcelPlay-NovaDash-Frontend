@@ -164,7 +164,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       p.setup = () => {
-        p.createCanvas(400, p.windowHeight - 82);
+        p.createCanvas(400, p.windowHeight );
         p.imageMode(p.CENTER);
         p.textFont(retroFont);
         createStars();
