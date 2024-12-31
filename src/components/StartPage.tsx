@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -15,16 +17,13 @@ const StartPage = () => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use refs to store audio objects to avoid unnecessary re-renders
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
   const startClickSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initialize audio objects
     clickSoundRef.current = new Audio("/audio/click.mp3");
     startClickSoundRef.current = new Audio("/audio/startclick.mp3");
 
-    // Cleanup audio objects
     return () => {
       clickSoundRef.current?.pause();
       startClickSoundRef.current?.pause();
@@ -33,29 +32,35 @@ const StartPage = () => {
     };
   }, []);
 
-  // Reusable function to play audio
-  const playSound = useCallback((audioRef: React.RefObject<HTMLAudioElement>) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0; // Reset the audio to start
-      audioRef.current.play().catch((error) => {
-        if (error.name === "NotAllowedError") {
-          console.warn(
-            "Audio playback failed due to autoplay restrictions. User interaction is required."
-          );
-        } else {
-          console.error("Audio playback failed:", error);
-        }
-      });
-    }
-  }, []);
+  const playSound = useCallback(
+    (audioRef: React.RefObject<HTMLAudioElement>) => {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch((error) => {
+          if (error.name === "NotAllowedError") {
+            console.warn(
+              "Audio playback failed due to autoplay restrictions. User interaction is required."
+            );
+          } else {
+            console.error("Audio playback failed:", error);
+          }
+        });
+      }
+    },
+    []
+  );
 
-  const handleShipSelect = (ship: { src: string; alt: string; name: string }) => {
+  const handleShipSelect = (ship: {
+    src: string;
+    alt: string;
+    name: string;
+  }) => {
     setSelectedShip(ship);
-    playSound(clickSoundRef); // Play sound when selecting a ship
+    playSound(clickSoundRef);
   };
 
   const startGame = () => {
-    playSound(startClickSoundRef); // Play the Start Game sound
+    playSound(startClickSoundRef);
     setIsLoading(true);
     setTimeout(() => {
       setIsGameStarted(true);
