@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { pixelFont } from "../../utils/fonts";
@@ -10,17 +10,17 @@ interface Player {
 }
 
 const players: Player[] = [
-  { rank: 1, name: 'HDN', score: 95924417 },
-  { rank: 2, name: 'CSI', score: 94735741 },
-  { rank: 3, name: 'JGV', score: 93911381 },
-  { rank: 4, name: 'AAA', score: 90662103 },
-  { rank: 5, name: 'AWC', score: 87815810 },
-  { rank: 6, name: 'IXV', score: 85040399 },
-  { rank: 7, name: 'OGX', score: 82362865 },
-  { rank: 8, name: 'DQE', score: 80294738 },
-  { rank: 9, name: 'VUS', score: 79436407 },
-  { rank: 10, name: 'KTB', score: 69358487 },
-  { rank: 11, name: 'HDV', score: 69135253 },
+  { rank: 1, name: 'Benjamin Franklin', score: 95924417 },
+  { rank: 2, name: 'Isaac Newton', score: 94735741 },
+  { rank: 3, name: 'Albert Einstein', score: 93911381 },
+  { rank: 4, name: 'Nikola Tesla', score: 90662103 },
+  { rank: 5, name: 'Marie Curie', score: 87815810 },
+  { rank: 6, name: 'Galileo Galilei', score: 85040399 },
+  { rank: 7, name: 'Ada Lovelace', score: 82362865 },
+  { rank: 8, name: 'Leonardo da Vinci', score: 80294738 },
+  { rank: 9, name: 'Charles Darwin', score: 79436407 },
+  { rank: 10, name: 'Alan Turing', score: 69358487 },
+  { rank: 11, name: 'Stephen Hawking', score: 69135253 },
 ];
 
 export default function Leaderboard() {
