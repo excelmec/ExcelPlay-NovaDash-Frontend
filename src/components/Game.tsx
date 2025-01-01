@@ -10,7 +10,6 @@ import { GameOverModal } from "@/components/GameOverModal";
 import { refreshTheAccessToken } from "@/utils/authUtils";
 import axios from "axios";
 
-
 interface GameProps {
   selectedShip: { src: string; alt: string };
 }
@@ -31,7 +30,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
 
-
+  
   const updateScore = async (score: number) => {
     try {
       // Refresh the token
@@ -691,12 +690,11 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           lanes.length - 1
         );
         if (newLaneIndex !== spaceshipLaneIndex) {
-          const currentX = lanes[spaceshipLaneIndex];
           const targetX = lanes[newLaneIndex];
           gsap.to(spaceshipRef.current, {
             x: targetX,
             duration: 0.3,
-            ease: "power2.inOut", // Changed from "power1.out" to "power2.inOut" for smoother easing
+            ease: "power2.out",
           });
           spaceshipLaneIndex = newLaneIndex;
         }
