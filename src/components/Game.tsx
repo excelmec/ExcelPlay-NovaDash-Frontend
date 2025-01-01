@@ -7,7 +7,7 @@ import Image from "next/image";
 import SoundOn from "@/assets/icons/sound_on.svg";
 import SoundOff from "@/assets/icons/sound_off.svg";
 import { GameOverModal } from "@/components/GameOverModal";
-import { refreshTheAccessToken } from "../utils/authUtils";
+import { refreshTheAccessToken } from "@/utils/authUtils";
 import axios from "axios";
 
 
