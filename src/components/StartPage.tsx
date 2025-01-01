@@ -17,49 +17,39 @@ const StartPage = () => {
   const [selectedShip, setSelectedShip] = useState(ShipDetails[0]);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [highScore, setHighScore] = useState<string | number>("N/A");
+  const [rank, setRank] = useState<string | number>("N/A");
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("accessToken");
-    window.location.href = "/";
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        await refreshTheAccessToken();
-      } catch (error) {
-        console.error("Periodic token refresh failed:", error);
-      }
-    }, 15000); 
-
-    return () => clearInterval(interval); 
-  }, []);
-
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-
-      // Extract refresh token from URL
-      checkRefreshFromUrl();
-
-      // Attempt to refresh access token
+  const fetchHighScoreAndRank = async () => {
+    try {
       const accessToken = await refreshTheAccessToken();
-      if (accessToken) {
-        console.log("Access Token:", accessToken);
-        setIsLoggedIn(true);
-      } else {
-        console.log("No access token found. User not logged in.");
-        setIsLoggedIn(false);
+      if (!accessToken) {
+        console.error("Access token not available.");
+        return;
       }
 
-      setLoading(false);
-    };
+      const scoreResponse = await fetch("https://space-shooter-nfxj.onrender.com/doodle/score", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (scoreResponse.ok) {
+        const scoreData = await scoreResponse.json();
+        setHighScore(scoreData.highScore || "N/A");
+      }
 
-    init();
+      const rankResponse = await fetch("https://space-shooter-nfxj.onrender.com/doodle/ranklist", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (rankResponse.ok) {
+        const rankData = await rankResponse.json();
+        setRank(rankData.rank || "N/A");
+      }
+    } catch (error) {
+      console.error("Error fetching high score and rank:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchHighScoreAndRank();
   }, []);
   // Use refs to store audio objects to avoid unnecessary re-renders
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -148,8 +138,8 @@ const StartPage = () => {
           <div className="flex flex-col gap-[27px] mt-[-8px]">
             <div className="flex justify-center gap-[6px] items-center flex-col text-[19px]">
               <div className="text-center flex flex-col text-cherryPink_text">
-                <p>YOUR RANK : 20XX</p>
-                <p className="mt-[-8px]">YOUR HIGH SCORE : 43XX</p>
+                <p>YOUR RANK : {rank}</p>
+                <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore}</p>
               </div>
 
               <div className="text-center flex flex-col text-[17px]">
