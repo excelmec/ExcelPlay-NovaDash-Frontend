@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
 import p5 from "p5";
 import gsap from "gsap";
 import Image from "next/image";
