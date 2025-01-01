@@ -291,12 +291,16 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               gameOverSound.play();
             }
             p.noLoop();
-            setFinalScore(Math.floor(points));
+        
+            const calculatedFinalScore = Math.floor(points); // Declare the variable
+            setFinalScore(calculatedFinalScore); // Update the state
             setShowGameOverModal(true);
-
-            updateScore(finalScore);
+            console.log(calculatedFinalScore);
+            // Update the score on the server
+            updateScore(calculatedFinalScore);
           }
         }
+        
 
         if (!gameOver) {
           let pointMultiplier = activePowerUp === "multiplier" ? 2 : 1;
