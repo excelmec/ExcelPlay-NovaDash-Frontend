@@ -1,5 +1,5 @@
-"use client"
-import React, { useState, useEffect, useRef, useCallback } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import TITLE from "@/assets/images/title.webp";
@@ -7,8 +7,7 @@ import Navbar from "./SpecialNavbar";
 import ShipSelector from "./ShipSelector";
 import { ShipDetails } from "@/constants";
 import ParticlesComponent from "./ParticlesBackground";
-import Controls_Guide from "@/assets/images/controls_guide.webp";
-import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
+import { refreshTheAccessToken } from "../utils/authUtils";
 
 const Game = dynamic(() => import("./Game"), { ssr: false });
 const Loading = dynamic(() => import("./Loading"), { ssr: false });
@@ -17,86 +16,68 @@ const StartPage = () => {
   const [selectedShip, setSelectedShip] = useState(ShipDetails[0]);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [highScore, setHighScore] = useState<string | number>("N/A");
-  const [rank, setRank] = useState<string | number>("N/A");
+  const [highScore, setHighScore] = useState<number | null>(null);
+  const [rank, setRank] = useState<number | null>(null);
 
-  const fetchHighScoreAndRank = async () => {
-    try {
-      const accessToken = await refreshTheAccessToken();
-      if (!accessToken) {
-        console.error("Access token not available.");
+  useEffect(() => {
+    const fetchScoreAndRank = async () => {
+      const token = await refreshTheAccessToken();
+      if (!token) {
+        console.error("Failed to refresh token.");
         return;
       }
 
-      const scoreResponse = await fetch("https://space-shooter-nfxj.onrender.com/doodle/score", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (scoreResponse.ok) {
-        const scoreData = await scoreResponse.json();
-        setHighScore(scoreData.highScore || "N/A");
-      }
+      try {
+        const response = await fetch(
+          "https://space-shooter-nfxj.onrender.com/doodle/score",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      const rankResponse = await fetch("https://space-shooter-nfxj.onrender.com/doodle/ranklist", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (rankResponse.ok) {
-        const rankData = await rankResponse.json();
-        setRank(rankData.rank || "N/A");
-      }
-    } catch (error) {
-      console.error("Error fetching high score and rank:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchHighScoreAndRank();
-  }, []);
-  // Use refs to store audio objects to avoid unnecessary re-renders
-  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
-  const startClickSoundRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    // Initialize audio objects
-    clickSoundRef.current = new Audio("/audio/click.mp3");
-    startClickSoundRef.current = new Audio("/audio/startclick.mp3");
-
-    // Cleanup audio objects
-    return () => {
-      clickSoundRef.current?.pause();
-      startClickSoundRef.current?.pause();
-      clickSoundRef.current = null;
-      startClickSoundRef.current = null;
-    };
-  }, []);
-
-  // Reusable function to play audio
-  const playSound = useCallback((audioRef: React.RefObject<HTMLAudioElement>) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0; // Reset the audio to start
-      audioRef.current.play().catch((error) => {
-        if (error.name === "NotAllowedError") {
-          console.warn(
-            "Audio playback failed due to autoplay restrictions. User interaction is required."
-          );
-        } else {
-          console.error("Audio playback failed:", error);
+        if (!response.ok) {
+          throw new Error("Failed to fetch score and rank.");
         }
-      });
-    }
+
+        const data = await response.json();
+        setHighScore(data.highScore);
+        setRank(data.rank);
+      } catch (error) {
+        console.error("Error fetching score and rank:", error);
+      }
+    };
+
+    fetchScoreAndRank();
   }, []);
+
+  const playClickSound = () => {
+    const audio = new Audio("/audio/click.mp3");
+    audio.play().catch((error) => {
+      if (error.name === "NotAllowedError") {
+        console.warn(
+          "Audio playback failed due to autoplay restrictions. The user needs to interact with the document first."
+        );
+      } else {
+        console.error("Audio playback failed:", error);
+      }
+    });
+  };
 
   const handleShipSelect = (ship: { src: string; alt: string; name: string }) => {
     setSelectedShip(ship);
-    playSound(clickSoundRef); // Play sound when selecting a ship
+    playClickSound();
   };
 
   const startGame = () => {
-    playSound(startClickSoundRef); // Play the Start Game sound
+    playClickSound();
     setIsLoading(true);
     setTimeout(() => {
       setIsGameStarted(true);
       setIsLoading(false);
-    }, 9000); // 9 seconds loading time
+    }, 9000);
   };
 
   if (isLoading) {
@@ -118,7 +99,6 @@ const StartPage = () => {
             alt="DOODLE BLAST"
             className="max-w-[258px] mt-[148px] mb-[5px]"
           />
-
           <div className="flex flex-col gap-[15px] scale-90">
             <div className="flex flex-col justify-center items-center gap-0">
               <p className="text-[30px] text-white mt-[6px]">Select Ship</p>
@@ -126,7 +106,6 @@ const StartPage = () => {
                 {selectedShip.name || "No Ship Selected"}
               </p>
             </div>
-
             <div>
               <ShipSelector
                 onShipSelect={handleShipSelect}
@@ -134,38 +113,35 @@ const StartPage = () => {
               />
             </div>
           </div>
-
           <div className="flex flex-col gap-[27px] mt-[-8px]">
-            <div className="flex justify-center gap-[6px] items-center flex-col text-[19px]">
+            <div className="flex justify-center gap-[6px] items-center flex-col text-[18px]">
               <div className="text-center flex flex-col text-cherryPink_text">
-                <p>YOUR RANK : {rank}</p>
-                <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore}</p>
+                <p>YOUR RANK : {rank || "Fetching..."}</p>
+                <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore || "Fetching..."}</p>
               </div>
-
-              <div className="text-center flex flex-col text-[17px]">
+              <div className="text-center flex flex-col text-[16px]">
                 <a
                   href="/leaderboard"
-                  className="text-skyblue_btn underline underline-offset-2 text-[17px]"
+                  className="text-skyblue_btn underline underline-offset-2"
+                  onClick={playClickSound}
                 >
                   VISIT LEADERBOARD
                 </a>
                 <a
-                  href="https://play.excelmec.org"
+                  href="/"
                   className="text-coralRed_btn cursor-pointer underline underline-offset-2 mt-[-4px]"
+                  onClick={playClickSound}
                 >
                   GO BACK
                 </a>
               </div>
             </div>
-
             <div className="borderGradient scale-95 mt-[-16px]">
               <button onClick={startGame} className="specialBg">
                 <p className="pt-[3.5px]">Start Game</p>
               </button>
             </div>
           </div>
-
-          <Image src={Controls_Guide} alt="swipe/ ← → to move & tap / space to shoot" className="max-w-[160px] mt-[40px] mb-[5px]" />
         </div>
       </div>
     </div>
