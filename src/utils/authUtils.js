@@ -19,8 +19,6 @@ export async function refreshTheAccessToken() {
       return null;
     }
 
-    console.log("Refresh token:", refreshToken);
-
     const response = await axiosAccPublic.post("/api/Auth/refresh", { refreshToken });
     const { accessToken } = response.data;
 
