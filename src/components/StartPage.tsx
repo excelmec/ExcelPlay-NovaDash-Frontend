@@ -8,6 +8,8 @@ import ShipSelector from "./ShipSelector";
 import { ShipDetails } from "@/constants";
 import ParticlesComponent from "./ParticlesBackground";
 import { refreshTheAccessToken } from "../utils/authUtils";
+import Controls_Guide from "@/assets/images/controls_guide.webp";
+
 
 const Game = dynamic(() => import("./Game"), { ssr: false });
 const Loading = dynamic(() => import("./Loading"), { ssr: false });
@@ -104,6 +106,7 @@ const StartPage = () => {
             alt="DOODLE BLAST"
             className="max-w-[258px] mt-[148px] mb-[5px]"
           />
+
           <div className="flex flex-col gap-[15px] scale-90">
             <div className="flex flex-col justify-center items-center gap-0">
               <p className="text-[30px] text-white mt-[6px]">Select Ship</p>
@@ -111,6 +114,7 @@ const StartPage = () => {
                 {selectedShip.name || "No Ship Selected"}
               </p>
             </div>
+
             <div>
               <ShipSelector
                 onShipSelect={handleShipSelect}
@@ -118,35 +122,38 @@ const StartPage = () => {
               />
             </div>
           </div>
+
           <div className="flex flex-col gap-[27px] mt-[-8px]">
-            <div className="flex justify-center gap-[6px] items-center flex-col text-[18px]">
-            <div className="text-center flex flex-col text-cherryPink_text">
-              <p>YOUR RANK : {rank}</p>
-              <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore}</p>
-            </div>
-              <div className="text-center flex flex-col text-[16px]">
+            <div className="flex justify-center gap-[6px] items-center flex-col text-[19px]">
+              <div className="text-center flex flex-col text-cherryPink_text">
+                <p>YOUR RANK : {rank}</p>
+                <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore}</p>
+              </div>
+
+              <div className="text-center flex flex-col text-[17px]">
                 <a
                   href="/leaderboard"
-                  className="text-skyblue_btn underline underline-offset-2"
-                  onClick={playClickSound}
+                  className="text-skyblue_btn underline underline-offset-2 text-[17px]"
                 >
                   VISIT LEADERBOARD
                 </a>
                 <a
-                  href="/"
+                  href="https://play.excelmec.org"
                   className="text-coralRed_btn cursor-pointer underline underline-offset-2 mt-[-4px]"
-                  onClick={playClickSound}
                 >
                   GO BACK
                 </a>
               </div>
             </div>
+
             <div className="borderGradient scale-95 mt-[-16px]">
               <button onClick={startGame} className="specialBg">
                 <p className="pt-[3.5px]">Start Game</p>
               </button>
             </div>
           </div>
+
+          <Image src={Controls_Guide} alt="swipe/ ← → to move & tap / space to shoot" className="max-w-[160px] mt-[40px] mb-[20px]" />
         </div>
       </div>
     </div>
