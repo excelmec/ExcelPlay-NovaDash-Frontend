@@ -20,12 +20,56 @@ const StartPage = () => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [highScore, setHighScore] = useState<number | string | null>(null);
+  const [rank, setRank] = useState<number | string | null>(null);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("accessToken");
     window.location.href = "/";
   }, []);
+
+
+
+  useEffect(() => {
+    const fetchScoreAndRank = async () => {
+      const token = await refreshTheAccessToken();
+      if (!token) {
+        console.error("Failed to refresh token.");
+        return;
+      }
+  
+      try {
+        const response = await fetch(
+          "https://space-shooter-nfxj.onrender.com/doodle/score",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch score and rank.");
+        }
+  
+        const data = await response.json();
+  
+        // Update state with fetched data or 'N/A' if missing
+        setHighScore(data.highScore ?? "N/A");
+        setRank(data.rank ?? "N/A");
+      } catch (error) {
+        console.error("Error fetching score and rank:", error);
+        setHighScore("N/A");
+        setRank("N/A");
+      }
+    };
+  
+    fetchScoreAndRank();
+  }, []);
+
+
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -148,8 +192,8 @@ const StartPage = () => {
           <div className="flex flex-col gap-[27px] mt-[-8px]">
             <div className="flex justify-center gap-[6px] items-center flex-col text-[19px]">
               <div className="text-center flex flex-col text-cherryPink_text">
-                <p>YOUR RANK : 20XX</p>
-                <p className="mt-[-8px]">YOUR HIGH SCORE : 43XX</p>
+                <p>YOUR RANK : {rank}</p>
+                <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore}</p>
               </div>
 
               <div className="text-center flex flex-col text-[17px]">
