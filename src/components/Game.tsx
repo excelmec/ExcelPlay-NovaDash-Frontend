@@ -791,7 +791,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           </div>
         </div>
       </div>
-      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
+      <div className="absolute top-0 left-0 max-w-screen w-full h-screen flex items-center justify-center pointer-events-none z-10">
         <div className="pointer-events-auto w-full">
           <GameOverModal
             isOpen={showGameOverModal}
