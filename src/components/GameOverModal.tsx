@@ -1,5 +1,6 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
 
 interface GameOverModalProps {
   isOpen: boolean;
@@ -8,12 +9,56 @@ interface GameOverModalProps {
   onGoHome: () => void;
 }
 
+
+
 export const GameOverModal: React.FC<GameOverModalProps> = ({
   isOpen,
   score,
   onPlayAgain,
   onGoHome,
 }) => {
+
+    const [highScore, setHighScore] = useState<number | string | null>(null);
+    const [rank, setRank] = useState<number | string | null>(null);
+
+
+    useEffect(() => {
+      const fetchScoreAndRank = async () => {
+        const token = await refreshTheAccessToken();
+        if (!token) {
+          console.error("Failed to refresh token.");
+          return;
+        }
+    
+        try {
+          const response = await fetch(
+            "https://space-shooter-nfxj.onrender.com/doodle/score",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+    
+          if (!response.ok) {
+            throw new Error("Failed to fetch score and rank.");
+          }
+    
+          const data = await response.json();
+    
+          // Update state with fetched data or 'N/A' if missing
+          setHighScore(data.highscore ?? "N/A");
+          setRank(data.rank ?? "N/A");
+        } catch (error) {
+          console.error("Error fetching score and rank:", error);
+          setHighScore("N/A");
+          setRank("N/A");
+        }
+      };
+    
+      fetchScoreAndRank();
+    }, []);
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => {}}>
@@ -43,10 +88,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                         You scored: {score}
                       </p>
                       <p className="text-[18px] text-cherryPink_text font-normal font-pixeboy mt-[-5px] min-w-[200px]">
-                        Your rank: 20XX
+                        Your rank: {rank}
                       </p>
                       <p className="text-[18px] text-cherryPink_text font-normal font-pixeboy mt-[-5px] min-w-[200px]">
-                        Your high score: 43XX
+                        Your high score: {highScore}
                       </p>
                     </div>
 

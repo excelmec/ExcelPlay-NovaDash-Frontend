@@ -29,48 +29,6 @@ const StartPage = () => {
     window.location.href = "/";
   }, []);
 
-
-
-  useEffect(() => {
-    const fetchScoreAndRank = async () => {
-      const token = await refreshTheAccessToken();
-      if (!token) {
-        console.error("Failed to refresh token.");
-        return;
-      }
-  
-      try {
-        const response = await fetch(
-          "https://space-shooter-nfxj.onrender.com/doodle/score",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-  
-        if (!response.ok) {
-          throw new Error("Failed to fetch score and rank.");
-        }
-  
-        const data = await response.json();
-  
-        // Update state with fetched data or 'N/A' if missing
-        setHighScore(data.highScore ?? "N/A");
-        setRank(data.rank ?? "N/A");
-      } catch (error) {
-        console.error("Error fetching score and rank:", error);
-        setHighScore("N/A");
-        setRank("N/A");
-      }
-    };
-  
-    fetchScoreAndRank();
-  }, []);
-
-
-
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -122,6 +80,47 @@ const StartPage = () => {
       startClickSoundRef.current = null;
     };
   }, []);
+
+
+
+  useEffect(() => {
+    const fetchScoreAndRank = async () => {
+      const token = await refreshTheAccessToken();
+      if (!token) {
+        console.error("Failed to refresh token.");
+        return;
+      }
+  
+      try {
+        const response = await fetch(
+          "https://space-shooter-nfxj.onrender.com/doodle/score",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch score and rank.");
+        }
+  
+        const data = await response.json();
+  
+        // Update state with fetched data or 'N/A' if missing
+        setHighScore(data.highscore ?? "N/A");
+        setRank(data.rank ?? "N/A");
+      } catch (error) {
+        console.error("Error fetching score and rank:", error);
+        setHighScore("N/A");
+        setRank("N/A");
+      }
+    };
+  
+    fetchScoreAndRank();
+  }, []);
+
 
   // Reusable function to play audio
   const playSound = useCallback((audioRef: React.RefObject<HTMLAudioElement>) => {
