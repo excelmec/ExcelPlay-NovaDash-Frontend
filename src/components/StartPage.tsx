@@ -175,7 +175,7 @@ const StartPage = () => {
             </div>
           </div>
 
-          <Image src={Controls_Guide} alt="swipe/ ← → to move & tap / space to shoot" className="max-w-[160px] mt-[40px] mb-[20px]" />
+          <Image src={Controls_Guide} alt="swipe/ ← → to move & tap / space to shoot" className="max-w-[160px] mt-[40px] mb-[5px]" />
         </div>
       </div>
     </div>
