@@ -16,8 +16,8 @@ const StartPage = () => {
   const [selectedShip, setSelectedShip] = useState(ShipDetails[0]);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [highScore, setHighScore] = useState<number | null>(null);
-  const [rank, setRank] = useState<number | null>(null);
+  const [highScore, setHighScore] = useState<number | string | null>(null);
+  const [rank, setRank] = useState<number | string | null>(null);
 
   useEffect(() => {
     const fetchScoreAndRank = async () => {
@@ -26,7 +26,7 @@ const StartPage = () => {
         console.error("Failed to refresh token.");
         return;
       }
-
+  
       try {
         const response = await fetch(
           "https://space-shooter-nfxj.onrender.com/doodle/score",
@@ -37,21 +37,26 @@ const StartPage = () => {
             },
           }
         );
-
+  
         if (!response.ok) {
           throw new Error("Failed to fetch score and rank.");
         }
-
+  
         const data = await response.json();
-        setHighScore(data.highScore);
-        setRank(data.rank);
+  
+        // Update state with fetched data or 'N/A' if missing
+        setHighScore(data.highScore ?? "N/A");
+        setRank(data.rank ?? "N/A");
       } catch (error) {
         console.error("Error fetching score and rank:", error);
+        setHighScore("N/A");
+        setRank("N/A");
       }
     };
-
+  
     fetchScoreAndRank();
   }, []);
+  
 
   const playClickSound = () => {
     const audio = new Audio("/audio/click.mp3");
