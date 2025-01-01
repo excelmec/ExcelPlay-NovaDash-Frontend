@@ -48,33 +48,6 @@ export default function NavbarProfileLogo() {
               </div>
             )}
           </Menu.Button>
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute right-0 mt-2 w-fit origin-top-right rounded-2xl bg-black py-1 border-[1px]">
-              <Menu.Item>
-                {({ active }) => (
-                  <a
-                    href="#"
-                    className="h-[40px] flex items-center px-8 text-md text-white"
-                    onClick={() => {
-                      localStorage.removeItem("accessToken");
-                      localStorage.removeItem("refreshToken");
-                      console.log("Logged out");
-                    }}
-                  >
-                    Logout
-                  </a>
-                )}
-              </Menu.Item>
-            </Menu.Items>
-          </Transition>
         </Menu>
       </div>
     </div>
