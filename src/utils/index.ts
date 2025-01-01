@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 export function processNumber(num: number) {
   if (num < 10) {
     return num;
@@ -11,3 +13,11 @@ export function processNumber(num: number) {
 
   return sum;
 }
+
+export const getPath = (score: number, sum: number) => {
+  const hash = crypto
+    .createHash("sha256")
+    .update(`${score}+${sum}`)
+    .digest("hex");
+  return hash.slice(8, 28);
+};
