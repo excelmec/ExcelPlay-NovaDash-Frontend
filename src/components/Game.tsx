@@ -314,32 +314,23 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
       const drawSpaceship = () => {
         if (spaceshipRef.current) {
-          const x =
-            (gsap.getProperty(spaceshipRef.current, "x") as number) ||
-            lanes[spaceshipLaneIndex];
-      
-          // Adjust vertical position by reducing the y-coordinate (e.g., `p.height - 70`)
+          const x = gsap.getProperty(spaceshipRef.current, "x") as number;
           const spaceshipY = p.height - 70;
-      
-          // Draw the shield ellipse before the spaceship
+
           if (activePowerUp === "shield") {
             p.push();
             p.noFill();
-            p.stroke(0, 100, 255, 150); // Blue color with some transparency
+            p.stroke(0, 100, 255, 150);
             p.strokeWeight(3);
-            p.ellipse(x, spaceshipY, 100, 120); // Ellipse slightly larger than the spaceship
+            p.ellipse(x, spaceshipY, 100, 120);
             p.pop();
           }
-      
-          // Apply red tint during collision
+
           if (collisionState && p.frameCount % 10 < 5) {
-            p.tint(255, 0, 0); // Red tint
+            p.tint(255, 0, 0);
           }
-      
-          // Draw the spaceship at the updated position
+
           p.image(spaceshipRef.current, x, spaceshipY, 80, 100);
-      
-          // Reset tint
           p.noTint();
         }
       };
@@ -705,7 +696,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           gsap.to(spaceshipRef.current, {
             x: targetX,
             duration: 0.3,
-            ease: "power1.out",
+            ease: "power2.inOut", // Changed from "power1.out" to "power2.inOut" for smoother easing
           });
           spaceshipLaneIndex = newLaneIndex;
         }

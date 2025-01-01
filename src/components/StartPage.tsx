@@ -120,10 +120,10 @@ const StartPage = () => {
           </div>
           <div className="flex flex-col gap-[27px] mt-[-8px]">
             <div className="flex justify-center gap-[6px] items-center flex-col text-[18px]">
-              <div className="text-center flex flex-col text-cherryPink_text">
-                <p>YOUR RANK : {rank || "Fetching..."}</p>
-                <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore || "Fetching..."}</p>
-              </div>
+            <div className="text-center flex flex-col text-cherryPink_text">
+              <p>YOUR RANK : {rank}</p>
+              <p className="mt-[-8px]">YOUR HIGH SCORE : {highScore}</p>
+            </div>
               <div className="text-center flex flex-col text-[16px]">
                 <a
                   href="/leaderboard"
