@@ -51,8 +51,17 @@ export default function Leaderboard() {
     fetchPlayers();
   }, []);
 
-  if (isLoading) return <div className="text-white">Loading...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-[#FEFB32] font-pixeboy animate-blink text-3xl">
+        Loading...
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="text-red-500 text-center mt-10 text-xl">{error}</div>
+    );
 
   return (
     <div

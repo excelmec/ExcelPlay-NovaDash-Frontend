@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Menu, Transition } from "@headlessui/react";
-import { Fragment } from "react";
+import { Menu } from "@headlessui/react";
 import { refreshTheAccessToken } from "@/utils/authUtils";
 import EXCEL_LOGO from "@/assets/images/excel.webp";
 
