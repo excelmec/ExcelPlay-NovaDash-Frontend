@@ -8,6 +8,9 @@ import Image from "next/image";
 import SoundOn from "@/assets/icons/sound_on.svg";
 import SoundOff from "@/assets/icons/sound_off.svg";
 import { GameOverModal } from "@/components/GameOverModal";
+import { refreshTheAccessToken } from "../utils/authUtils";
+import axios from "axios";
+
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -28,6 +31,37 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const [score, setScore] = useState("0000000000");
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+
+
+  const updateScore = async (score: number) => {
+    try {
+      // Refresh the token
+      const accessToken = await refreshTheAccessToken();
+      if (!accessToken) {
+        console.error("Unable to refresh access token.");
+        return;
+      }
+  
+      // Post the score
+      const response = await axios.post(
+        "https://space-shooter-nfxj.onrender.com/doodle/score",
+        { score },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+  
+      if (response.status === 200) {
+        console.log("Score updated successfully:", response.data);
+      } else {
+        console.error("Failed to update score:", response);
+      }
+    } catch (error) {
+      console.error("Error updating score:", error);
+    }
+  };
 
   const toggleSoundWithoutRestart = useCallback(() => {
     isSoundOnRef.current = !isSoundOnRef.current;
@@ -259,6 +293,8 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             p.noLoop();
             setFinalScore(Math.floor(points));
             setShowGameOverModal(true);
+
+            updateScore(finalScore);
           }
         }
 
