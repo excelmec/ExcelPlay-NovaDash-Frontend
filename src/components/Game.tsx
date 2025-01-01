@@ -250,7 +250,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       };
 
       const checkAndUpdateGameSpeed = () => {
-        const scoreThresholds = [1, 2, 4, 200, 1500, 5500, 10000];
+        const scoreThresholds = [1, 2, 200, 1500, 5500, 10000];
         const currentThreshold = scoreThresholds.find(
           (threshold) =>
             points >= threshold && threshold > lastSpeedIncreaseScore
@@ -372,7 +372,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           obstacle.y += baseSpeed * speedMultiplier * 0.5;
 
           if (checkCollision(
-            { x: lanes[spaceshipLaneIndex], y: p.height - 40 },
+            { x: lanes[spaceshipLaneIndex], y: p.height - 100 },
             { x: obstacle.x, y: obstacle.y },
             30
           )) {
@@ -519,7 +519,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             if (bullet.isEnemy && checkCollision(
               { x: lanes[spaceshipLaneIndex], y: p.height - 50 },
               { x: bullet.x, y: bullet.y },
-              20
+              60  // Increased collision distance from 40 to 60
             )) {
               if (activePowerUp === "shield") {
                 createShieldHitEffect(lanes[spaceshipLaneIndex], p.height - 50);
