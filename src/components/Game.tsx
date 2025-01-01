@@ -366,7 +366,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
         obstacles.forEach((obstacle, index) => {
           if (obstacle.type === "asteroid") {
-            p.image(asteroidImg, obstacle.x, obstacle.y, 30, 30);
+            p.image(asteroidImg, obstacle.x, obstacle.y, 40, 40);
           }
           obstacle.y += baseSpeed * speedMultiplier * 0.5;
 
