@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import Image from "next/image";
-import { Menu } from "@headlessui/react";
+import { Menu, Transition } from "@headlessui/react";
+import { useRouter } from "next/navigation"; // For programmatic navigation
 import { refreshTheAccessToken } from "@/utils/authUtils";
 import EXCEL_LOGO from "@/assets/images/excel.webp";
 
 export default function NavbarProfileLogo() {
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProfilePicture = async () => {
@@ -24,6 +26,18 @@ export default function NavbarProfileLogo() {
 
     fetchProfilePicture();
   }, []);
+
+  const handleLogout = () => {
+    try {
+      // Clear access token from local storage
+      localStorage.removeItem("accessToken");
+
+      // Redirect to login page
+      router.push("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
 
   return (
     <div className="w-full navBorder max-h-[82px] h-full fixed z-10 top-0 max-w-[444.8px]">
@@ -47,6 +61,28 @@ export default function NavbarProfileLogo() {
               </div>
             )}
           </Menu.Button>
+          <Transition
+            as={Fragment}
+            enter="transition ease-out duration-100"
+            enterFrom="transform opacity-0 scale-95"
+            enterTo="transform opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="transform opacity-100 scale-100"
+            leaveTo="transform opacity-0 scale-95"
+          >
+            <Menu.Items className="absolute right-0 mt-2 w-fit origin-top-right rounded-2xl bg-black py-1 border-[1px]">
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    className="h-[40px] flex items-center px-8 text-md text-white"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                )}
+              </Menu.Item>
+            </Menu.Items>
+          </Transition>
         </Menu>
       </div>
     </div>
