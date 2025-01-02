@@ -2,6 +2,8 @@
 export function checkRefreshFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   const refreshToken = urlParams.get("refreshToken");
+    console.log("RefreshToken :",refreshToken);
+
   if (refreshToken) {
     localStorage.setItem("refreshToken", refreshToken);
     urlParams.delete("refreshToken");
