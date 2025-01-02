@@ -37,7 +37,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       // Refresh the token
       const accessToken = await refreshTheAccessToken();
       if (!accessToken) {
-        console.error("Unable to refresh access token.");
         return;
       }
   
@@ -53,9 +52,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         }
       );
   
-      if (response.status === 200) {
-        console.log("Score updated successfully:", response.data);
-      } else {
+      if (response.status !== 200) {
         console.error("Failed to update score:", response);
       }
     } catch (error) {
@@ -295,7 +292,6 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
             const calculatedFinalScore = Math.floor(points); // Declare the variable
             setFinalScore(calculatedFinalScore); // Update the state
             setShowGameOverModal(true);
-            console.log(calculatedFinalScore);
             // Update the score on the server
             updateScore(calculatedFinalScore);
           }

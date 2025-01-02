@@ -52,7 +52,6 @@ const StartPage = () => {
       // Attempt to refresh access token
       const accessToken = await refreshTheAccessToken();
       if (accessToken) {
-        console.log("Access Token:", accessToken);
         setIsLoggedIn(true);
       } else {
         console.log("No access token found. User not logged in.");
