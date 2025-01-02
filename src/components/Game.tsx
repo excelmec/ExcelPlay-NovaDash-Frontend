@@ -42,15 +42,17 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       }
   
       // Post the score
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       const response = await axios.post(
-        `https://space-shooter-nfxj.onrender.com/doodle/score/${getPath(score, processNumber(score))}`,
-        { score },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      `${backendUrl}/doodle/score/${getPath(score, processNumber(score))}`,
+      { score },
+      {
+        headers: {
+        Authorization: `Bearer ${accessToken}`,
+        },
+    }
+  );
+
   
       if (response.status === 200) {
         console.log("Score updated successfully:", response.data);
