@@ -9,6 +9,7 @@ import SoundOff from "@/assets/icons/sound_off.svg";
 import { GameOverModal } from "@/components/GameOverModal";
 import { refreshTheAccessToken } from "@/utils/authUtils";
 import axios from "axios";
+import { processNumber, getPath } from "@/utils";
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -42,7 +43,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   
       // Post the score
       const response = await axios.post(
-        "https://space-shooter-nfxj.onrender.com/doodle/score",
+        `https://space-shooter-nfxj.onrender.com/doodle/score/${getPath(score, processNumber(score))}`,
         { score },
         {
           headers: {
