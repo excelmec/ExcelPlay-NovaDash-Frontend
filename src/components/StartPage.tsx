@@ -61,7 +61,7 @@ const StartPage = () => {
       setLoading(false);
     };
 
-    init();
+    if(!isLoading ) init();
   }, []);
   // Use refs to store audio objects to avoid unnecessary re-renders
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);

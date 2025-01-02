@@ -16,11 +16,14 @@ export async function refreshTheAccessToken() {
   try {
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) {
-      window.location.href = "https://play.excelmec.org"; // Redirect if no refresh token
+      console.log("No refresh token found");
+      // window.location.href = "https://play.excelmec.org"; // Redirect if no refresh token
       return null;
     }
 
-    const response = await axiosAccPublic.post("/api/Auth/refresh", { refreshToken });
+    const response = await axiosAccPublic.post("/api/Auth/refresh", {
+      refreshToken,
+    });
     const { accessToken } = response.data;
 
     localStorage.setItem("accessToken", accessToken);
@@ -28,7 +31,8 @@ export async function refreshTheAccessToken() {
   } catch (error) {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("accessToken");
-    window.location.href = "https://play.excelmec.org"; // Redirect on refresh failure
+    console.error("Error refreshing token", error);
+    // window.location.href = "https://play.excelmec.org"; // Redirect on refresh failure
     return null;
   }
 }
