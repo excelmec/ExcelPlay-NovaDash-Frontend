@@ -30,6 +30,43 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
   const [score, setScore] = useState("0000000000");
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [highScore, setHighScore] = useState<number>(0);
+  const [rank, setRank] = useState<number>(0);
+
+
+
+
+  const fetchScoreAndRank = async () => {
+    const token = await refreshTheAccessToken();
+    if (!token) {
+      console.error("Failed to refresh token.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${BACKEND_BASE}/doodle/score`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        const { rank, highscore } = response.data;
+        setRank(rank ?? "N/A");
+        setHighScore(highscore ?? 0);
+      } else {
+        console.error("Failed to fetch rank and high score.");
+        setRank(0);
+        setHighScore(0);
+      }
+    } catch (error) {
+      console.error("Error fetching score and rank:", error);
+      setRank(0);
+      setHighScore(0);
+    }
+  };
+
+
 
   
   const updateScore = async (score: number) => {
@@ -291,9 +328,12 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         
             const calculatedFinalScore = Math.floor(points); // Declare the variable
             setFinalScore(calculatedFinalScore); // Update the state
-            setShowGameOverModal(true);
+            
             // Update the score on the server
             updateScore(calculatedFinalScore);
+            fetchScoreAndRank();
+
+            setShowGameOverModal(true);
           }
         }
         
@@ -819,12 +859,14 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       </div>
       <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
         <div className="pointer-events-auto w-full">
-          <GameOverModal
-            isOpen={showGameOverModal}
-            score={finalScore}
-            onPlayAgain={resetGame}
-            onGoHome={() => window.location.reload()}
-          />
+        <GameOverModal
+        isOpen={showGameOverModal}
+        score={finalScore}
+        rank={rank}
+        highScore={highScore}
+        onPlayAgain={resetGame}
+        onGoHome={() => window.location.reload()}
+      />
         </div>
       </div>
     </div>

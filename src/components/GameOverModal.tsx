@@ -1,65 +1,23 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment} from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
-import { BACKEND_BASE } from "@/utils";
 
 interface GameOverModalProps {
   isOpen: boolean;
   score: number;
+  highScore: number;
+  rank: number;
   onPlayAgain: () => void;
   onGoHome: () => void;
 }
 
-
-
 export const GameOverModal: React.FC<GameOverModalProps> = ({
   isOpen,
   score,
+  highScore,
+  rank,
   onPlayAgain,
   onGoHome,
 }) => {
-
-    const [highScore, setHighScore] = useState<number | string | null>(null);
-    const [rank, setRank] = useState<number | string | null>(null);
-
-
-    useEffect(() => {
-      const fetchScoreAndRank = async () => {
-        const token = await refreshTheAccessToken();
-        if (!token) {
-          console.error("Failed to refresh token.");
-          return;
-        }
-    
-        try {
-          const response = await fetch(
-            `${BACKEND_BASE}/doodle/score`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-    
-          if (!response.ok) {
-            throw new Error("Failed to fetch score and rank.");
-          }
-    
-          const data = await response.json();
-    
-          // Update state with fetched data or 'N/A' if missing
-          setHighScore(data.highscore ?? "N/A");
-          setRank(data.rank ?? "N/A");
-        } catch (error) {
-          console.error("Error fetching score and rank:", error);
-          setHighScore("N/A");
-          setRank("N/A");
-        }
-      };
-    
-      fetchScoreAndRank();
-    }, []);
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => {}}>
@@ -78,7 +36,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 <div className="specialBg flex justify-center items-center flex-col w-full h-full min-h-[234px] mt-[-3px]">
                   <Dialog.Title
                     as="h3"
-                    className="text-[45px] font-medium font-pixeboy text-white w-full min-w-[240px] "
+                    className="text-[45px] font-medium font-pixeboy text-white w-full min-w-[240px]"
                   >
                     Game Over
                   </Dialog.Title>
@@ -95,11 +53,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                         Your high score: {highScore}
                       </p>
                     </div>
-
                     <div className="flex justify-center items-center flex-col gap-0">
                       <button
                         type="button"
-                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2  touch-action-manipulation"
+                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2 touch-action-manipulation"
                         onClick={onPlayAgain}
                         onTouchStart={onPlayAgain}
                       >
@@ -107,7 +64,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                       </button>
                       <button
                         type="button"
-                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2 mt-[-2px]  touch-action-manipulation"
+                        className="text-[16px] text-[#3094CF] font-normal font-pixeboy underline underline-offset-2 mt-[-2px] touch-action-manipulation"
                         onClick={onGoHome}
                         onTouchStart={onGoHome}
                       >
