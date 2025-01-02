@@ -32,8 +32,8 @@ export default function NavbarProfileLogo() {
       // Clear access token from local storage
       localStorage.removeItem("accessToken");
 
-      // Redirect to login page
-      router.push("/");
+      // Redirect to the base URL
+      window.location.href = "https://playtest.excelmec.org";
     } catch (error) {
       console.error("Error during logout:", error);
     }
