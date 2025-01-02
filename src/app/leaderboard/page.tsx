@@ -92,49 +92,39 @@ export default function Leaderboard() {
           HIGH SCORES
         </h1>
 
-        <div className="w-full grid grid-cols-[1fr_5fr_2fr] gap-4 text-white font-pixel">
-          <div className="text-center mb-5 text-[18px]">RANK</div>
-          <div className="text-center mb-5 text-[18px]">PLAYER</div>
-          <div className="text-center mb-5 text-[18px]">SCORE</div>
+        <div className="w-full grid text-white font-pixel gap-y-4">
+          <div className="grid grid-cols-[1fr_5fr_2fr] text-center text-[18px]">
+            <div>RANK</div>
+            <div>PLAYER</div>
+            <div>SCORE</div>
+          </div>
 
           {players.map((player) => (
-            <React.Fragment key={player.rank}>
-              <div
-                className={`text-center ${getRankColor(player.rank)} ${
-                  player.name === currentUserName
-                    ? "bg-[#07a187] text-black"
-                    : ""
-                }`}
-              >
-                {player.rank}
-                {player.rank === 1
-                  ? "ST"
-                  : player.rank === 2
-                  ? "ND"
-                  : player.rank === 3
-                  ? "RD"
-                  : "TH"}
-              </div>
-              <div
-                className={`text-center ${getRankColor(player.rank)} ${
-                  player.name === currentUserName
-                    ? "bg-[#07a187] text-black"
-                    : ""
-                }`}
-              >
-                {player.name}
-              </div>
-              <div
-                className={`text-center ${getRankColor(player.rank)} ${
-                  player.name === currentUserName
-                    ? "bg-[#07a187] text-black"
-                    : ""
-                }`}
-              >
-                {player.score}
-              </div>
-            </React.Fragment>
-          ))}
+  <div
+    key={player.rank}
+    className={`grid grid-cols-[1fr_5fr_2fr] text-center ${
+      player.name === currentUserName ? "bg-[#07a187] !text-black" : ""
+    }`}
+  >
+    <div className={player.name === currentUserName ? "" : getRankColor(player.rank)}>
+      {player.rank}
+      {player.rank === 1
+        ? "ST"
+        : player.rank === 2
+        ? "ND"
+        : player.rank === 3
+        ? "RD"
+        : "TH"}
+    </div>
+    <div className={player.name === currentUserName ? "" : getRankColor(player.rank)}>
+      {player.name}
+    </div>
+    <div className={player.name === currentUserName ? "" : getRankColor(player.rank)}>
+      {player.score}
+    </div>
+  </div>
+))}
+
         </div>
       </div>
     </div>
