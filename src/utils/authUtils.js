@@ -16,8 +16,9 @@ export function checkRefreshFromUrl() {
 export async function refreshTheAccessToken() {
   try {
     const refreshToken = localStorage.getItem("refreshToken");
-    console.log("Refresh token from localStorage:", refreshToken); // Log the refresh token
+    console.log("Refresh token from localStorage:", refreshToken);
     if (!refreshToken) {
+      window.location.href = "https://play.excelmec.org"; // Redirect if no refresh token
       return null;
     }
 
@@ -30,6 +31,7 @@ export async function refreshTheAccessToken() {
     console.error("Token refresh failed:", error);
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("accessToken");
+    window.location.href = "https://play.excelmec.org"; // Redirect on refresh failure
     return null;
   }
 }
