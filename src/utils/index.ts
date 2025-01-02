@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+export const BACKEND_BASE = process.env.NEXT_PUBLIC_NOVADASH_BACKEND_BASE_URL;
+
 export function processNumber(num: number) {
   if (num < 10) {
     return num;

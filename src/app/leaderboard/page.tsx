@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BACKEND_BASE } from "@/utils";
 
 interface Player {
   rank: number;
@@ -37,7 +38,7 @@ export default function Leaderboard() {
     const fetchPlayers = async () => {
       try {
         const response = await fetch(
-          "https://space-shooter-nfxj.onrender.com/doodle/ranklist"
+          `${BACKEND_BASE}/doodle/ranklist`
         );
         const data = await response.json();
         setPlayers(data.ranklist || []); // Extract the ranklist
