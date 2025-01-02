@@ -383,7 +383,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               } else if (!collisionState) {
                 collisionState = true;
                 collisionTimer = COLLISION_DURATION;
-                createExplosion(lanes[spaceshipLaneIndex], p.height - 50);
+                createExplosion(lanes[spaceshipLaneIndex], p.height - 100); // Updated explosion position
               }
             }
           }
@@ -478,7 +478,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           ) && !collisionState) {
             collisionState = true;
             collisionTimer = COLLISION_DURATION;
-            createExplosion(lanes[spaceshipLaneIndex], p.height - 50);
+            createExplosion(lanes[spaceshipLaneIndex], p.height - 100); // Updated explosion position
             enemySpaceships.splice(index, 1);
           }
         });
@@ -527,7 +527,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
               } else if (!collisionState) {
                 collisionState = true;
                 collisionTimer = COLLISION_DURATION;
-                createExplosion(lanes[spaceshipLaneIndex], p.height - 50);
+                createExplosion(lanes[spaceshipLaneIndex], p.height - 100); // Updated explosion position
                 bullets.splice(index, 1);
               }
             }
