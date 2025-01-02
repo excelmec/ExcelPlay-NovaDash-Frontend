@@ -9,7 +9,7 @@ import SoundOff from "@/assets/icons/sound_off.svg";
 import { GameOverModal } from "@/components/GameOverModal";
 import { refreshTheAccessToken } from "@/utils/authUtils";
 import axios from "axios";
-import { processNumber, getPath } from "@/utils";
+import { processNumber, getPath, BACKEND_BASE } from "@/utils";
 
 interface GameProps {
   selectedShip: { src: string; alt: string };
@@ -44,15 +44,14 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       // Post the score
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       const response = await axios.post(
-      `${backendUrl}/doodle/score/${getPath(score, processNumber(score))}`,
-      { score },
-      {
-        headers: {
-        Authorization: `Bearer ${accessToken}`,
-        },
-    }
-  );
-
+        `${BACKEND_BASE}/doodle/score/${getPath(score, processNumber(score))}`,
+        { score },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
   
       if (response.status === 200) {
         console.log("Score updated successfully:", response.data);
