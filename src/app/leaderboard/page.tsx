@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { refreshTheAccessToken } from "@/utils/authUtils";
 import { BACKEND_BASE } from "@/utils";
-import { refreshTheAccessToken } from "../../utils/authUtils";
 
 interface Player {
   rank: number;
@@ -14,9 +14,9 @@ interface Player {
 
 export default function Leaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
+  const [currentUserName, setCurrentUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [currentUser, setCurrentUser] = useState<Player | null>(null);
   const router = useRouter();
 
   const playSound = () => {
@@ -37,22 +37,18 @@ export default function Leaderboard() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPlayersAndUser = async () => {
       try {
-        // Refresh the access token
-        const accessToken = await refreshTheAccessToken();
-        if (!accessToken) throw new Error("Failed to fetch access token");
+        // Refresh and get the access token
+        const accessToken =
+          localStorage.getItem("accessToken") || (await refreshTheAccessToken());
+        if (!accessToken) throw new Error("Failed to retrieve access token");
 
-        // Fetch the logged-in user's details
-        const userResponse = await fetch(`${BACKEND_BASE}/doodle/score`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        const userData = await userResponse.json();
-        setCurrentUser(userData);
+        // Decode the JWT payload to get the user details
+        const payload = JSON.parse(atob(accessToken.split(".")[1]));
+        setCurrentUserName(payload.name); // Assuming the token contains 'name'
 
-        // Fetch the leaderboard
+        // Fetch leaderboard data
         const leaderboardResponse = await fetch(
           `${BACKEND_BASE}/doodle/ranklist`
         );
@@ -65,7 +61,7 @@ export default function Leaderboard() {
       }
     };
 
-    fetchData();
+    fetchPlayersAndUser();
   }, []);
 
   if (isLoading)
@@ -101,41 +97,44 @@ export default function Leaderboard() {
           <div className="text-center mb-5 text-[18px]">PLAYER</div>
           <div className="text-center mb-5 text-[18px]">SCORE</div>
 
-          {players.map((player) => {
-            const isCurrentUser = currentUser && player.name === currentUser.name;
-            return (
-              <React.Fragment key={player.rank}>
-                <div
-                  className={`text-center ${getRankColor(player.rank)} ${
-                    isCurrentUser ? "bg-[#2F4F4F]" : ""
-                  }`}
-                >
-                  {player.rank}
-                  {player.rank === 1
-                    ? "ST"
-                    : player.rank === 2
-                    ? "ND"
-                    : player.rank === 3
-                    ? "RD"
-                    : "TH"}
-                </div>
-                <div
-                  className={`text-center ${getRankColor(player.rank)} ${
-                    isCurrentUser ? "bg-[#2F4F4F]" : ""
-                  }`}
-                >
-                  {player.name}
-                </div>
-                <div
-                  className={`text-center ${getRankColor(player.rank)} ${
-                    isCurrentUser ? "bg-[#2F4F4F]" : ""
-                  }`}
-                >
-                  {player.score}
-                </div>
-              </React.Fragment>
-            );
-          })}
+          {players.map((player) => (
+            <React.Fragment key={player.rank}>
+              <div
+                className={`text-center ${getRankColor(player.rank)} ${
+                  player.name === currentUserName
+                    ? "bg-[#07a187] text-black"
+                    : ""
+                }`}
+              >
+                {player.rank}
+                {player.rank === 1
+                  ? "ST"
+                  : player.rank === 2
+                  ? "ND"
+                  : player.rank === 3
+                  ? "RD"
+                  : "TH"}
+              </div>
+              <div
+                className={`text-center ${getRankColor(player.rank)} ${
+                  player.name === currentUserName
+                    ? "bg-[#07a187] text-black"
+                    : ""
+                }`}
+              >
+                {player.name}
+              </div>
+              <div
+                className={`text-center ${getRankColor(player.rank)} ${
+                  player.name === currentUserName
+                    ? "bg-[#07a187] text-black"
+                    : ""
+                }`}
+              >
+                {player.score}
+              </div>
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </div>

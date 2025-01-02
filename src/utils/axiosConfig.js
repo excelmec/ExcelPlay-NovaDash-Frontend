@@ -50,14 +50,14 @@ axiosWithToken.interceptors.response.use(
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
         // Redirect to play.excelmec.org if token refresh fails
-        
+        window.location.href = "https://play.excelmec.org";
         return Promise.reject(refreshError);
       }
     }
 
     // Redirect to play.excelmec.org if any other error indicates no token
     if (error.response?.status === 403 || error.response?.status === 401) {
-      
+      window.location.href = "https://play.excelmec.org";
     }
 
     return Promise.reject(error);
