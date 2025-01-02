@@ -37,7 +37,7 @@ const StartPage = () => {
       } catch (error) {
         console.error("Periodic token refresh failed:", error);
       }
-    }, 15000); 
+    }, 300000); 
 
     return () => clearInterval(interval); 
   }, []);

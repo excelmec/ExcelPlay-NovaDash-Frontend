@@ -40,8 +40,7 @@ export default function Leaderboard() {
     const fetchPlayersAndUser = async () => {
       try {
         // Refresh and get the access token
-        const accessToken =
-          localStorage.getItem("accessToken") || (await refreshTheAccessToken());
+        const accessToken ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI2OTMiLCJlbWFpbCI6ImphY2toYXJwZXIwMDQ4QGdtYWlsLmNvbSIsIm5iZiI6MTczNTc5MTg3NSwiZXhwIjoxNzY3MzI3ODc1LCJpYXQiOjE3MzU3OTE4NzUsImlzcyI6Imh0dHA6Ly9leGNlbG1lYy5vcmcvIn0.WWmjmenO2nNUXNe2-J1xi7csHLWrCIlRtsIO7JubcaDrKgmHC6OhT5wRHJy9E7oaqlMS2Ns1yMDaDYO2NF5Sng"
         if (!accessToken) throw new Error("Failed to retrieve access token");
 
         // Decode the JWT payload to get the user details

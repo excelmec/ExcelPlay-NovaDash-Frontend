@@ -289,10 +289,9 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         
             const calculatedFinalScore = Math.floor(points); // Declare the variable
             setFinalScore(calculatedFinalScore); // Update the state
-            
+            setShowGameOverModal(true);
             // Update the score on the server
             updateScore(calculatedFinalScore);
-            setShowGameOverModal(true);
           }
         }
         
