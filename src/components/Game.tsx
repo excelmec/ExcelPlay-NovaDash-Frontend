@@ -39,9 +39,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
       if (!accessToken) {
         return;
       }
-  
-      // Post the score
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
       const response = await axios.post(
         `${BACKEND_BASE}/doodle/score/${getPath(score, processNumber(score))}`,
         { score },
@@ -51,7 +49,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
           },
         }
       );
-  
+      console.log(response)
       if (response.status !== 200) {
         console.error("Failed to update score:", response);
       }
@@ -291,9 +289,10 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
         
             const calculatedFinalScore = Math.floor(points); // Declare the variable
             setFinalScore(calculatedFinalScore); // Update the state
-            setShowGameOverModal(true);
+            
             // Update the score on the server
             updateScore(calculatedFinalScore);
+            setShowGameOverModal(true);
           }
         }
         
