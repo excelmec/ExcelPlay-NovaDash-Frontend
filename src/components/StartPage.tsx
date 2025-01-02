@@ -9,6 +9,7 @@ import { ShipDetails } from "@/constants";
 import ParticlesComponent from "./ParticlesBackground";
 import Controls_Guide from "@/assets/images/controls_guide.webp";
 import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
+import { BACKEND_BASE } from "@/utils";
 
 const Game = dynamic(() => import("./Game"), { ssr: false });
 const Loading = dynamic(() => import("./Loading"), { ssr: false });
@@ -93,7 +94,7 @@ const StartPage = () => {
   
       try {
         const response = await fetch(
-          "https://space-shooter-nfxj.onrender.com/doodle/score",
+          `${BACKEND_BASE}/doodle/score`,
           {
             method: "GET",
             headers: {

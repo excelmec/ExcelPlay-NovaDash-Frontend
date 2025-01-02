@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
+import { BACKEND_BASE } from "@/utils";
 
 interface GameOverModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
     
         try {
           const response = await fetch(
-            "https://space-shooter-nfxj.onrender.com/doodle/score",
+            `${BACKEND_BASE}/doodle/score`,
             {
               method: "GET",
               headers: {
