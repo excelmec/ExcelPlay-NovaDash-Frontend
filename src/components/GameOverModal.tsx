@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { checkRefreshFromUrl, refreshTheAccessToken } from "../utils/authUtils";
+import { refreshTheAccessToken } from "../utils/authUtils";
 import { BACKEND_BASE } from "@/utils";
 
 interface GameOverModalProps {

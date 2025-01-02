@@ -1,5 +1,3 @@
-import { axiosAccPublic } from "./axiosConfig";
-
 // Extract refresh token from URL
 export function checkRefreshFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -16,7 +14,6 @@ export async function refreshTheAccessToken() {
   try {
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) {
-      window.location.href = "https://play.excelmec.org"; // Redirect if no refresh token
       return null;
     }
 
@@ -28,7 +25,6 @@ export async function refreshTheAccessToken() {
   } catch (error) {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("accessToken");
-    window.location.href = "https://play.excelmec.org"; // Redirect on refresh failure
     return null;
   }
 }
