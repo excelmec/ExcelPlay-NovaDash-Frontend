@@ -874,4 +874,3 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 };
 
 export default Game;
-

@@ -42,9 +42,10 @@ export default function NavbarProfileLogo() {
   return (
     <div className="w-full navBorder max-h-[82px] h-full fixed z-10 top-0 max-w-[444.8px]">
       <div className="flex items-center justify-between px-[25px] py-2 backdrop-blur-[12px] w-full max-h-[96px] h-full navStyle">
-        <a href="./" className="flex shrink-0 items-center">
-          <Image alt="Excel '24" src={EXCEL_LOGO} className="h-[42px] w-auto" />
-        </a>
+      <a href="https://play.excelmec.org" className="flex shrink-0 items-center">
+        <Image alt="Excel '24" src={EXCEL_LOGO} className="h-[42px] w-auto" />
+      </a>
+
 
         <Menu as="div" className="relative">
           <Menu.Button className="flex rounded-full text-sm border-2 border-white/[0.1]">
