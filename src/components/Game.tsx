@@ -70,6 +70,7 @@ const Game: React.FC<GameProps> = ({ selectedShip }) => {
 
   
   const updateScore = async (score: number) => {
+    return; // temp disable
     try {
       // Refresh the token
       const accessToken = await refreshTheAccessToken();
