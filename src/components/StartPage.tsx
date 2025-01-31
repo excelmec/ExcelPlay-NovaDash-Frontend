@@ -174,6 +174,7 @@ const StartPage = () => {
 
           <div className="flex flex-col gap-[15px] scale-90">
             <div className="flex flex-col justify-center items-center gap-0">
+              <p className="text-[25px] text-cherryPink_text">Mission Completed. See You Next Season !!</p>
               <p className="text-[30px] text-white mt-[6px]">Select Ship</p>
               <p className="text-skyblue_btn text-[18px] mt-[-7px]">
                 {selectedShip.name || "No Ship Selected"}

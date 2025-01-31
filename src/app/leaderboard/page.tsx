@@ -33,22 +33,21 @@ export default function Leaderboard() {
     if (rank === 1) return "text-[#FFD700]"; // Gold
     if (rank === 2) return "text-[#00FFFF]"; // Cyan
     if (rank === 3) return "text-[#FF00AA]"; // Pink
-    return ""; // Default color for others
+    return ""; 
   };
 
   useEffect(() => {
     const fetchPlayersAndUser = async () => {
       try {
-        // Refresh and get the access token
         const accessToken =
           localStorage.getItem("accessToken") || (await refreshTheAccessToken());
         if (!accessToken) throw new Error("Failed to retrieve access token");
 
-        // Decode the JWT payload to get the user details
-        const payload = JSON.parse(atob(accessToken.split(".")[1]));
-        setCurrentUserName(payload.name); // Assuming the token contains 'name'
 
-        // Fetch leaderboard data
+        const payload = JSON.parse(atob(accessToken.split(".")[1]));
+        setCurrentUserName(payload.name); 
+
+
         const leaderboardResponse = await fetch(
           `${BACKEND_BASE}/doodle/ranklist`
         );
